@@ -1,4 +1,4 @@
-*.iml
+# Ignore Gradle files
 .gradle
 /local.properties
 /.idea/caches
@@ -7,9 +7,24 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+
+# OS-specific files
 .DS_Store
+
+# Ignore build outputs
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# Keystore files (important for security)
+*.keystore
+*.jks
+
+# Android Studio settings
+/.idea/*
+/*.iml
+
+# Other unnecessary files
+.vscode/
+*.log
