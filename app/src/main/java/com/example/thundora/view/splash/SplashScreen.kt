@@ -1,4 +1,4 @@
-package com.example.thundora.view
+package com.example.thundora.view.splash
 
 import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.Animatable
@@ -18,16 +18,14 @@ import com.airbnb.lottie.RenderMode
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.thundora.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun Splach(navToHome: () -> Unit) {
+fun Splash() {
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash2))
-    val lottieAnimatable = rememberLottieAnimatable()
 
     LaunchedEffect(key1 = true) {
         scale.animateTo(
@@ -37,9 +35,8 @@ fun Splach(navToHome: () -> Unit) {
                 easing = { OvershootInterpolator(2f).getInterpolation(it) }
             )
         )
-        lottieAnimatable.animate(composition.value)
-        delay(5000L)
-        navToHome()
+        delay(2500L)
+
     }
 
     Box(
@@ -59,13 +56,11 @@ fun Splach(navToHome: () -> Unit) {
                 )
             )
     ) {
-        if (composition.value != null) {
-            LottieAnimation(
-                composition = composition.value,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier.fillMaxSize(),
-                renderMode = RenderMode.AUTOMATIC
-            )
-        }
+        LottieAnimation(
+            composition = composition.value,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier.fillMaxSize(),
+            renderMode = RenderMode.AUTOMATIC
+        )
     }
 }

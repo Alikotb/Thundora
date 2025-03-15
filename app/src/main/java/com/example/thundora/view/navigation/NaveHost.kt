@@ -3,32 +3,29 @@ package com.example.thundora.view.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.thundora.view.HomeScreen
-import com.example.thundora.view.Splach
-import com.example.thundora.view.navigation.ScreansRout.Splash
+import com.example.thundora.view.alarm.AlarmScreen
+import com.example.thundora.view.favorite.FavoriteScreen
+import com.example.thundora.view.home.HomeScreen
+import com.example.thundora.view.settings.SettingScreen
+import com.example.thundora.view.splash.Splash
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SetUpNavHost() {
-    var navConroller = rememberNavController()
+fun SetUpNavHost(navController: NavHostController, sho: Boolean) {
     NavHost(
-        navController = navConroller,
-        startDestination = Splash
+        navController = navController,
+        startDestination =
+            if (sho)  ScreensRout.Home.route else ScreensRout.Splash.route ,
     ) {
-        composable<Splash>() {
-            Splach {
-                navConroller.navigate(ScreansRout.Home)
-            }
-        }
-        composable<ScreansRout.Home>() {
-            HomeScreen()
-        }
-
+        composable(ScreensRout.Splash.route) { Splash () }
+        composable(ScreensRout.Home.route) { HomeScreen() }
+        composable(ScreensRout.Alarm.route) { AlarmScreen() }
+        composable(ScreensRout.Favorite.route) { FavoriteScreen() }
+        composable(ScreensRout.Setting.route) { SettingScreen() }
     }
-
 
 }
