@@ -36,7 +36,9 @@
     <color name="blue_700">#FF1976D2</color>
     <color name="blue_800">#FF1565C0</color>
     <color name="blue_900">#FF0D47A1</color>
-
+    <color name="dark_blue">#1B3B5A</color>
+    <color name="deep_blue">#102840</color>
+    <color name="blue_accent">#4A90E2</color>
 
 
     <color name="blue_1200">#001F3F</color>

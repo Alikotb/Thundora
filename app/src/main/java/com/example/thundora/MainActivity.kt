@@ -15,27 +15,18 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
+import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.navigation.SetUpNavHost
 import kotlinx.coroutines.delay
 
@@ -47,13 +38,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             navController = rememberNavController()
-            var splashFlag by remember {
-                mutableStateOf(false)
-            }
+            var splashFlag by remember { mutableStateOf(false) }
+
             LaunchedEffect(Unit) {
                 delay(3500L)
                 splashFlag = true
             }
+
             MainScreen(splashFlag)
         }
     }
@@ -62,59 +53,49 @@ class MainActivity : ComponentActivity() {
     fun BottomNavigationBar(navController: NavController) {
         val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
         val navigationItems = listOf(
-            BottomNAvigationBar(
-                title = "Home",
-                selectedIcon = Icons.Filled.Home,
-                unselectedIcon = Icons.Outlined.Home,
-            ),
-            BottomNAvigationBar(
-                title = "Alarm",
-                selectedIcon = Icons.Filled.Notifications,
-                unselectedIcon = Icons.Outlined.Notifications,
-            ),
-            BottomNAvigationBar(
-                title = "Favorite",
-                selectedIcon = Icons.Filled.Favorite,
-                unselectedIcon = Icons.Outlined.Favorite,
-            ),
-            BottomNAvigationBar(
-                title = "Setting",
-                selectedIcon = Icons.Filled.Settings,
-                unselectedIcon = Icons.Outlined.Settings,
-            )
+            BottomNAvigationBar("Home", Icons.Filled.Home, Icons.Outlined.Home),
+            BottomNAvigationBar("Alarm", Icons.Filled.Notifications, Icons.Outlined.Notifications),
+            BottomNAvigationBar("Favorite", Icons.Filled.Favorite, Icons.Outlined.Favorite),
+            BottomNAvigationBar("Setting", Icons.Filled.Settings, Icons.Outlined.Settings)
         )
 
-        NavigationBar(containerColor = Color.White) {
+        NavigationBar(containerColor = DeepBlue) {
             navigationItems.forEachIndexed { index, item ->
                 val isSelected = selectedNavigationIndex.intValue == index
                 NavigationBarItem(
-                    selected = selectedNavigationIndex.intValue == index,
+                    selected = isSelected,
                     onClick = {
-                        selectedNavigationIndex.intValue = index
-                        navController.popBackStack()
-                        navController.navigate(item.title)
+                        if (selectedNavigationIndex.intValue != index) {
+                            selectedNavigationIndex.intValue = index
+                            navController.navigate(item.title) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     },
                     icon = {
                         Icon(
                             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                             contentDescription = item.title,
-                            tint = if (isSelected) colorResource(R.color.blue_900) else Color.Gray
+                            tint = if (isSelected) Color.White else colorResource(R.color.blue_200)
                         )
                     },
                     label = {
                         Text(
                             text = item.title,
-                            color = if (isSelected) colorResource(R.color.blue_900) else Color.Gray
+                            color = if (isSelected) Color.White else colorResource(R.color.blue_200),
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = colorResource(R.color.blue_900),
-                        indicatorColor = colorResource(R.color.blue_100),
-                        unselectedIconColor = Color.Gray
+                        selectedIconColor = Color.White,
+                        indicatorColor = colorResource(R.color.blue_accent), // Better contrast
+                        unselectedIconColor = colorResource(R.color.blue_200)
                     )
-
                 )
-
             }
         }
     }
@@ -124,18 +105,9 @@ class MainActivity : ComponentActivity() {
     fun MainScreen(splashFlag: Boolean) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                if (splashFlag)
-                    BottomNavigationBar(navController)
-
-            }
+            bottomBar = { if (splashFlag) BottomNavigationBar(navController) }
         ) { innerPadding ->
-            SetUpNavHost(
-                navController = navController,
-                splashFlag,
-                innerPadding
-            )
+            SetUpNavHost(navController = navController, splashFlag, innerPadding)
         }
     }
 }
-
