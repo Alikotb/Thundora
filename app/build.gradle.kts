@@ -1,15 +1,22 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    id ("org.jetbrains.kotlin.plugin.serialization")
-
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
     namespace = "com.example.thundora"
     compileSdk = 35
+
+    // Load API Key from local.properties
+    val localProperties = Properties().apply {
+        load(File(rootProject.projectDir, "local.properties").inputStream())
+    }
+    val weatherApiKey: String = localProperties.getProperty("WEATHER_API_KEY") ?: ""
 
     defaultConfig {
         applicationId = "com.example.thundora"
@@ -17,8 +24,10 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Pass API key to BuildConfig
+        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
     }
 
     buildTypes {
@@ -30,20 +39,24 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
-dependencies {
 
+dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -60,14 +73,17 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-
     implementation("androidx.navigation:navigation-compose:2.8.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    implementation ("com.airbnb.android:lottie-compose:6.6.3")
-    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation("com.airbnb.android:lottie-compose:6.6.3")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 
+    // Retrofit for API calls
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
-
-
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
 }
+
+

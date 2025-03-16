@@ -35,7 +35,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.thundora.model.pojos.BottomNAvigationBar
+import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.view.navigation.SetUpNavHost
 import kotlinx.coroutines.delay
 
@@ -47,14 +47,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             navController = rememberNavController()
-            var sho by remember {
+            var splashFlag by remember {
                 mutableStateOf(false)
             }
             LaunchedEffect(Unit) {
-                delay(3000L)
-                sho = true
+                delay(3500L)
+                splashFlag = true
             }
-            MainScreen(sho)
+            MainScreen(splashFlag)
         }
     }
 
@@ -121,18 +121,19 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
-    fun MainScreen(sho: Boolean) {
+    fun MainScreen(splashFlag: Boolean) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-                if (sho)
+                if (splashFlag)
                     BottomNavigationBar(navController)
 
             }
         ) { innerPadding ->
             SetUpNavHost(
                 navController = navController,
-                sho
+                splashFlag,
+                innerPadding
             )
         }
     }

@@ -1,4 +1,4 @@
-package com.example.thundora.model.pojos
+package com.example.thundora.model.pojos.view
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

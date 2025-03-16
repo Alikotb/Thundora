@@ -1,4 +1,4 @@
-package com.example.thundora.view.navigation
+package com.example.thundora.model.pojos.view
 
 sealed class ScreensRout(val route: String) {
     object Splash : ScreensRout("splash")
