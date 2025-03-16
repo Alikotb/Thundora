@@ -16,7 +16,7 @@ object ApiClient {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.openweathermap.org/data/2.5/")
+            .baseUrl("https://api.openweathermap.org/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
