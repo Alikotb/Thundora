@@ -99,6 +99,8 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:$compose_version")
 
 
+
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 }
 
 

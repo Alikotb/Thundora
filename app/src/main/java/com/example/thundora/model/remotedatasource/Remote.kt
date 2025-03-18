@@ -5,13 +5,13 @@ import com.example.thundora.model.pojos.api.GeocodingResponseItem
 import com.example.thundora.model.pojos.api.Weather
 
 class RemoteDataSource(val api: WeatherService) {
-    suspend fun getWeather(lat: Double, lon: Double): Weather {
-        val response = api.getWeather(lat, lon)
+    suspend fun getWeather(lat: Double, lon: Double,units:String): Weather {
+        val response = api.getWeather(lat, lon,units)
         return response.body()!!
     }
 
-    suspend fun getForecast(lat: Double, lon: Double): Forecast {
-        val response = api.getForecast(lat, lon)
+    suspend fun getForecast(lat: Double, lon: Double,units:String): Forecast {
+        val response = api.getForecast(lat, lon,units)
         return response.body()!!
     }
 

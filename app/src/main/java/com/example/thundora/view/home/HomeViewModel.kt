@@ -22,20 +22,20 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: MutableLiveData<String?> = _error
 
-    fun getForecast(lat: Double, lon: Double) {
+    fun getForecast(lat: Double, lon: Double,units:String) {
         viewModelScope.launch {
             try {
-                _forecast.postValue(repo.getForecast(lat, lon))
+                _forecast.postValue(repo.getForecast(lat, lon,units))
             } catch (e: Exception) {
                 _error.postValue(e.message)
             }
         }
     }
 
-    fun getWeather(lat: Double, lon: Double) {
+    fun getWeather(lat: Double, lon: Double,units:String) {
         viewModelScope.launch {
             try {
-                _weather.postValue(repo.getWeather(lat, lon))
+                _weather.postValue(repo.getWeather(lat, lon,units))
             } catch (e: Exception) {
                 _error.postValue(e.message)
             }

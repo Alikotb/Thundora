@@ -2,8 +2,10 @@ package com.example.thundora
 
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -36,6 +39,8 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setLightStatusBar(true)
         setContent {
             navController = rememberNavController()
             var splashFlag by remember { mutableStateOf(false) }
@@ -107,7 +112,25 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize(),
             bottomBar = { if (splashFlag) BottomNavigationBar(navController) }
         ) { innerPadding ->
-            SetUpNavHost(navController = navController, splashFlag, innerPadding)
+
+            SetUpNavHost(navController = navController, splashFlag)
+
+        }
+    }
+
+    fun setLightStatusBar(isLight: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window?.let { window ->
+                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars =
+                    !isLight
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window?.decorView?.systemUiVisibility = if (isLight) {
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // Light text/icons
+            } else {
+                View.SYSTEM_UI_FLAG_VISIBLE // Dark text/icons
+            }
         }
     }
 }

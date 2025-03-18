@@ -8,17 +8,19 @@ import com.example.thundora.model.remotedatasource.RemoteDataSource
 class Repository private constructor(private val remote: RemoteDataSource) : IRepository {
     override suspend fun getWeather(
         lat: Double,
-        lon: Double
+        lon: Double,
+        units: String
     ): Weather {
 
-        return remote.getWeather(lat, lon)
+        return remote.getWeather(lat, lon, units)
     }
 
     override suspend fun getForecast(
         lat: Double,
-        lon: Double
+        lon: Double,
+        units: String
     ): Forecast {
-        return remote.getForecast(lat, lon)
+        return remote.getForecast(lat, lon, units)
     }
 
     override suspend fun getCoordinates(city: String): List<GeocodingResponseItem> {
