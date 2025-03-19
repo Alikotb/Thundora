@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
-                        indicatorColor = colorResource(R.color.blue_accent), // Better contrast
+                        indicatorColor = colorResource(R.color.blue_accent),
                         unselectedIconColor = colorResource(R.color.blue_200)
                     )
                 )
@@ -127,9 +127,9 @@ class MainActivity : ComponentActivity() {
         } else {
             @Suppress("DEPRECATION")
             window?.decorView?.systemUiVisibility = if (isLight) {
-                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // Light text/icons
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             } else {
-                View.SYSTEM_UI_FLAG_VISIBLE // Dark text/icons
+                View.SYSTEM_UI_FLAG_VISIBLE
             }
         }
     }

@@ -1,9 +1,9 @@
 package com.example.thundora.view.home
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -33,23 +33,49 @@ import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.pojos.view.Units
 import com.example.thundora.model.utils.CountryHelper
 import com.example.thundora.ui.theme.DarkBlue
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.thundora.model.remotedatasource.ApiClient
+import com.example.thundora.model.remotedatasource.RemoteDataSource
+import com.example.thundora.model.repositary.Repository
+import com.example.thundora.model.utils.dailyForecasts
+import com.example.thundora.view.home.viewmodel.HomeFactory
+import com.example.thundora.view.home.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(navToMaps: () -> Unit) {
+
+    val viewModel: HomeViewModel =
+        viewModel(factory = HomeFactory(Repository.getInstance(RemoteDataSource(ApiClient.weatherService))))
+
+
     val weatherState by viewModel.weather.observeAsState()
-    val forecastState by viewModel.forecast.observeAsState()
+    val forecastState = viewModel.forecast.observeAsState()
+    var dataPoints: MutableList<Float> = mutableListOf()
     //val errorState by viewModel.error.observeAsState()
 
     LaunchedEffect(viewModel) {
-        Log.i("HomeScreen", "Fetching weather and forecast...")
 
         viewModel.getWeather(30.0444, 31.2357, Units.METRIC.toString())
         viewModel.getForecast(30.0444, 31.2357, Units.METRIC.toString())
     }
+
+
+
+    dataPoints = forecastState.value?.list?.take(8)?.map {
+        it.main.temp.toFloat()
+    }?.toMutableList() ?: mutableListOf()
+
+
 
     Column(
         modifier = Modifier
@@ -60,9 +86,12 @@ fun HomeScreen(viewModel: HomeViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(48.dp))
-        weatherState?.let { WeatherCard(it) }
-        forecastState?.let { WeatherForecast(it) }
-        DayDisplay(forecastState)
+        weatherState?.let { WeatherCard(it, navToMaps) }
+        forecastState?.let { WeatherForecast(it.value) }
+        Spacer(Modifier.height(4.dp))
+        DayDisplay(forecastState.value)
+        LineChartScreen(dataPoints)
+        Spacer(Modifier.height(100.dp))
 
     }
 }
@@ -70,12 +99,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun WeatherCard(weatherState: Weather?) {
+fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
     val iconUrl = "https://openweathermap.org/img/wn/$iconCode.png"
-
-    Log.d("WeatherCard", "Weather icon URL: $iconUrl")
-
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
         shape = RoundedCornerShape(10.dp),
@@ -101,9 +127,14 @@ fun WeatherCard(weatherState: Weather?) {
                     color = colorResource(id = R.color.white),
                     fontSize = 18.sp,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clickable(
+                            onClick = navToMaps
+                        ),
 
-                )
+
+                    )
                 Column {
                     Text(
                         text = SimpleDateFormat("EEEE", Locale.getDefault()).format(
@@ -161,19 +192,19 @@ fun WeatherCard(weatherState: Weather?) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = weatherState?.wind?.speed.toString(),
                     unit = " km/h",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
                     iconTint = Color.White
                 )
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = weatherState?.main?.humidity.toString(),
                     unit = "%",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
                     iconTint = Color.White
                 )
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = weatherState?.main?.pressure.toString(),
                     unit = " hPa",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
@@ -185,7 +216,7 @@ fun WeatherCard(weatherState: Weather?) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(
                         Date((weatherState?.sys?.sunrise ?: 0) * 1000L)
                     ),
@@ -194,7 +225,7 @@ fun WeatherCard(weatherState: Weather?) {
                     iconTint = Color.Yellow
                 )
 
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(
                         Date((weatherState?.sys?.sunset ?: 0) * 1000L)
                     ),
@@ -203,7 +234,7 @@ fun WeatherCard(weatherState: Weather?) {
                     iconTint = Color.Yellow
                 )
 
-                WeatherDataDisplay(
+                WeatherInfo(
                     value = weatherState?.main?.sea_level?.toString() ?: "--",
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.sea),
@@ -227,7 +258,7 @@ fun WeatherForecast(forecastState: Forecast?) {
         forecastState?.list?.let { forecastList ->
             LazyRow {
                 items(forecastList.take(8)) { item ->
-                    HourlyDataDisplay(
+                    HourlyDataRow(
                         time = SimpleDateFormat(
                             "HH:mm",
                             Locale.getDefault()
@@ -243,7 +274,7 @@ fun WeatherForecast(forecastState: Forecast?) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun HourlyDataDisplay(time: String, temp: String, icon: String) {
+fun HourlyDataRow(time: String, temp: String, icon: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
@@ -262,7 +293,7 @@ fun HourlyDataDisplay(time: String, temp: String, icon: String) {
 }
 
 @Composable
-fun WeatherDataDisplay(
+fun WeatherInfo(
     value: String,
     unit: String,
     icon: ImageVector,
@@ -354,26 +385,213 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
 
 @Composable
 fun DayDisplay(forecastState: Forecast?) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf<Forecast.Item0?>(null) }
+
     forecastState?.let { forecast ->
         val forecastMap = forecast.dailyForecasts()
-        forecastMap.forEach { (dayKey, itemList) ->
+        forecastMap.forEach { (_, itemList) ->
             val firstItem = itemList.firstOrNull()
             firstItem?.let { item ->
-                DayDisplayRow(
-                    time = SimpleDateFormat(
-                        "EEEE",
-                        Locale.getDefault()
-                    ).format(Date(item.dt * 1000L)),
-                    date = SimpleDateFormat(
-                        "dd/MM",
-                        Locale.getDefault()
-                    ).format(Date(item.dt * 1000L)),
-                    temp = "${item.main.temp.toInt()}°C",
-                    icon = item.weather.firstOrNull()?.icon ?: "01n"
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedItem = item
+                            showBottomSheet = true
+                        }
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    DayDisplayRow(
+                        time = SimpleDateFormat(
+                            "EEEE",
+                            Locale.getDefault()
+                        ).format(Date(item.dt * 1000L)),
+                        date = SimpleDateFormat(
+                            "dd/MM",
+                            Locale.getDefault()
+                        ).format(Date(item.dt * 1000L)),
+                        temp = "${item.main.temp.toInt()}°C",
+                        icon = item.weather.firstOrNull()?.icon ?: "01n"
+                    )
+                }
+            }
+        }
+    }
+
+    if (showBottomSheet && selectedItem != null) {
+        WeatherForecastBottomSheet(weatherState = selectedItem) {
+            showBottomSheet = false
+            selectedItem = null
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@Composable
+fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Unit) {
+    var showBottomSheet by remember { mutableStateOf(true) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { onClose() },
+            sheetState = sheetState,
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = DarkBlue),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = SimpleDateFormat("EEEE, dd MMM", Locale.getDefault())
+                                .format(Date(weatherState?.dt?.times(1000L) ?: 0L)),
+                            modifier = Modifier.padding(top = 8.dp),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = weatherState?.weather?.get(0)?.description?.capitalize()
+                                ?: "Unknown",
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+
+                    Text(
+                        text = "${weatherState?.main?.temp?.toInt()}°C",
+                        fontSize = 35.sp,
+                        color = Color.White,
+
+                        )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        WeatherInfo(
+                            value = weatherState?.main?.humidity?.toString() ?: "--",
+                            unit = "%",
+                            icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
+                            iconTint = Color.White
+                        )
+                        WeatherInfo(
+                            value = weatherState?.wind?.speed?.toString() ?: "--",
+                            unit = " km/h",
+                            icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
+                            iconTint = Color.White
+                        )
+                        WeatherInfo(
+                            value = weatherState?.main?.pressure?.toString() ?: "--",
+                            unit = " hPa",
+                            icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
+                            iconTint = Color.White
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Displaying Cloud Coverage and Rain
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        WeatherInfo(
+                            value = weatherState?.clouds?.all?.toString() ?: "--",
+                            unit = "%",
+                            icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
+                            iconTint = Color.White
+                        )
+                        WeatherInfo(
+                            value = weatherState?.rain?.`3h`?.toString() ?: "NoRain",
+                            unit = "",
+                            icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
+                            iconTint = Color.White
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                showBottomSheet = false
+                            }
+                            onClose()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
 }
+
+
+@Composable
+fun LineChart(
+    dataPoints: List<Float>,
+    modifier: Modifier = Modifier,
+    lineColor: Color = colorResource(id = R.color.white),
+    lineWidth: Float = 4f
+) {
+    if (dataPoints.isEmpty()) return
+
+    val maxValue = dataPoints.maxOrNull() ?: 1f
+
+    Canvas(modifier = modifier) {
+        val path = Path().apply {
+            moveTo(0f, size.height - (dataPoints[0] / maxValue) * size.height)
+            dataPoints.forEachIndexed { index, dataPoint ->
+                lineTo(
+                    index * size.width / (dataPoints.size - 1),
+                    size.height - (dataPoint / maxValue) * size.height
+                )
+            }
+        }
+        drawPath(path, color = lineColor, style = Stroke(width = lineWidth))
+    }
+}
+
+@Composable
+fun LineChartScreen(dataPoints: MutableList<Float>) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        LineChart(
+            dataPoints = dataPoints,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
+    }
+
+
+}
+
+
+
+
 
 

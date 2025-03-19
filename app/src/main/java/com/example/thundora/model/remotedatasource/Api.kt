@@ -27,4 +27,12 @@ interface WeatherService {
         @Query("q") city: String,
         @Query("limit") limit: Int = 1
     ): Response<List<GeocodingResponseItem>>
+
+    @GET("geo/1.0/reverse")
+    suspend fun getCityName(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("limit") limit: Int = 1
+    ): Response<List<GeocodingResponseItem>>
+
 }

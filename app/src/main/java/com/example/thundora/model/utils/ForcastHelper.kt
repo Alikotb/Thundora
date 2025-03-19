@@ -1,4 +1,4 @@
-package com.example.thundora.view.home
+package com.example.thundora.model.utils
 
 import com.example.thundora.model.pojos.api.Forecast
 import java.text.SimpleDateFormat

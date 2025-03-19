@@ -99,6 +99,19 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:$compose_version")
 
 
+    implementation("com.google.maps.android:maps-compose:6.4.1")
+
+    implementation("com.google.android.libraries.places:places:3.1.0")
+
+
+
+    implementation ("androidx.compose.ui:ui:1.0.5")
+    implementation ("androidx.compose.material:material:1.0.5")
+    implementation ("androidx.compose.ui:ui-tooling:1.0.5")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.0.5")
+
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+
 
     implementation ("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 }

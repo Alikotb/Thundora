@@ -17,11 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -51,7 +51,6 @@ fun SettingScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .background(
                 color = colorResource(id = R.color.deep_blue),
             ),
@@ -62,7 +61,6 @@ fun SettingScreen() {
         TempSelectionChips()
         LocationSelectionChips()
         WendSpeedSelectionChips()
-
     }
 }
 
@@ -87,8 +85,9 @@ fun LanguageSelectionChips() {
                 Image(
                     painter = painterResource(id = R.drawable.language),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp)
-                    .padding(end = 12.dp),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(end = 12.dp),
                 )
                 Text(
                     text = "Language",
@@ -131,6 +130,7 @@ fun LanguageSelectionChips() {
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun TempSelectionChips() {
@@ -152,7 +152,8 @@ fun TempSelectionChips() {
                 Image(
                     painter = painterResource(id = R.drawable.temp),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier
+                        .size(40.dp)
                         .padding(end = 12.dp),
                 )
                 Text(
@@ -163,39 +164,38 @@ fun TempSelectionChips() {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
-                Row(
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    listOf("Celsius °C", "Fahrenheit °F","Kelvin °K").forEach { option ->
-                        FilterChip(
-                            selected = (option == selectedOption),
-                            onClick = { selectedOption = option },
-                            enabled = true,
-                            label = {
-                                Text(
-                                    text = option,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFF1565C0),
-                                containerColor = Color(0xFFBBDEFB),
-                                selectedLabelColor = Color.White,
-                                labelColor = Color.Black
-                            ),
-                            modifier = Modifier.padding(end = 12.dp)
-                        )
-                    }
+            Row(
+                Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                listOf("Celsius °C", "Fahrenheit °F", "Kelvin °K").forEach { option ->
+                    FilterChip(
+                        selected = (option == selectedOption),
+                        onClick = { selectedOption = option },
+                        enabled = true,
+                        label = {
+                            Text(
+                                text = option,
+                                fontWeight = FontWeight.Medium
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFF1565C0),
+                            containerColor = Color(0xFFBBDEFB),
+                            selectedLabelColor = Color.White,
+                            labelColor = Color.Black
+                        ),
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
                 }
             }
         }
     }
-
+}
 
 
 @Preview(showBackground = true)
@@ -219,7 +219,8 @@ fun LocationSelectionChips() {
                 Image(
                     painter = painterResource(id = R.drawable.location),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier
+                        .size(40.dp)
                         .padding(end = 12.dp),
                 )
                 Text(
@@ -285,7 +286,8 @@ fun WendSpeedSelectionChips() {
                 Image(
                     painter = painterResource(id = R.drawable.ic_wind),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier
+                        .size(40.dp)
                         .padding(end = 12.dp),
                 )
                 Text(
@@ -405,3 +407,5 @@ fun ContactImageIcon(imageRes: Int, contentDesc: String, onClick: () -> Unit) {
             .padding(8.dp)
     )
 }
+
+

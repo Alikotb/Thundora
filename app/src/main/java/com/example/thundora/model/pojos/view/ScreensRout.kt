@@ -6,4 +6,6 @@ sealed class ScreensRout(val route: String) {
     object Alarm : ScreensRout("alarm")
     object Favorite : ScreensRout("favorite")
     object Setting : ScreensRout("setting")
+    object Map : ScreensRout("map")
+
 }
