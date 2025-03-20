@@ -39,6 +39,7 @@ import java.util.*
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,7 +53,7 @@ import com.example.thundora.view.home.viewmodel.HomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(navToMaps: () -> Unit) {
+fun HomeScreen(lat: Double, lon: Double, navToMaps: (latitude: Double, longitude: Double) -> Unit) {
 
     val viewModel: HomeViewModel =
         viewModel(factory = HomeFactory(Repository.getInstance(RemoteDataSource(ApiClient.weatherService))))
@@ -61,21 +62,22 @@ fun HomeScreen(navToMaps: () -> Unit) {
     val weatherState by viewModel.weather.observeAsState()
     val forecastState = viewModel.forecast.observeAsState()
     var dataPoints: MutableList<Float> = mutableListOf()
-    //val errorState by viewModel.error.observeAsState()
-
+    var hourlyData: MutableList<String> = mutableListOf()
     LaunchedEffect(viewModel) {
 
-        viewModel.getWeather(30.0444, 31.2357, Units.METRIC.toString())
-        viewModel.getForecast(30.0444, 31.2357, Units.METRIC.toString())
+        viewModel.getWeather(lat, lon, Units.METRIC.toString())
+        viewModel.getForecast(lat, lon, Units.METRIC.toString())
     }
 
-
-
-    dataPoints = forecastState.value?.list?.take(8)?.map {
+    dataPoints = forecastState.value?.list?.take(4)?.map {
         it.main.temp.toFloat()
     }?.toMutableList() ?: mutableListOf()
-
-
+    hourlyData = forecastState.value?.list?.take(4)?.map {
+        "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it.dt * 1000L))}\n" +
+                "${
+                    it.main.temp
+                } C"
+    }?.toMutableList() ?: mutableListOf()
 
     Column(
         modifier = Modifier
@@ -86,16 +88,16 @@ fun HomeScreen(navToMaps: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(48.dp))
-        weatherState?.let { WeatherCard(it, navToMaps) }
+        weatherState?.let { WeatherCard(it) { navToMaps(it.coord.lat, it.coord.lon) } }
+
         forecastState?.let { WeatherForecast(it.value) }
         Spacer(Modifier.height(4.dp))
         DayDisplay(forecastState.value)
-        LineChartScreen(dataPoints)
+        LineChartScreen(dataPoints, hourlyData)
         Spacer(Modifier.height(100.dp))
 
     }
 }
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -130,10 +132,8 @@ fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .clickable(
-                            onClick = navToMaps
+                            onClick = { navToMaps() }
                         ),
-
-
                     )
                 Column {
                     Text(
@@ -245,7 +245,6 @@ fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
     }
 }
 
-
 @Composable
 fun WeatherForecast(forecastState: Forecast?) {
     Column(
@@ -318,7 +317,6 @@ fun WeatherInfo(
         )
     }
 }
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -546,10 +544,10 @@ fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Uni
     }
 }
 
-
 @Composable
 fun LineChart(
     dataPoints: List<Float>,
+    descriptions: List<String>,
     modifier: Modifier = Modifier,
     lineColor: Color = colorResource(id = R.color.white),
     lineWidth: Float = 4f
@@ -558,22 +556,53 @@ fun LineChart(
 
     val maxValue = dataPoints.maxOrNull() ?: 1f
 
-    Canvas(modifier = modifier) {
-        val path = Path().apply {
-            moveTo(0f, size.height - (dataPoints[0] / maxValue) * size.height)
+
+    Box(modifier = modifier) {
+        Canvas(modifier = modifier) {
+            val widthStep = size.width / (dataPoints.size - 1) // X position spacing
+            val path = Path().apply {
+                moveTo(0f, size.height - (dataPoints[0] / maxValue) * size.height)
+                dataPoints.forEachIndexed { index, dataPoint ->
+                    lineTo(
+                        index * size.width / (dataPoints.size - 1),
+                        size.height - (dataPoint / maxValue) * size.height
+                    )
+                }
+            }
+            drawPath(path, color = lineColor, style = Stroke(width = lineWidth))
             dataPoints.forEachIndexed { index, dataPoint ->
-                lineTo(
-                    index * size.width / (dataPoints.size - 1),
-                    size.height - (dataPoint / maxValue) * size.height
-                )
+                val x = index * widthStep
+                val y = size.height - (dataPoint / maxValue) * size.height
+                drawCircle(color = Color.Red, radius = 6f, center = Offset(x, y))
             }
         }
-        drawPath(path, color = lineColor, style = Stroke(width = lineWidth))
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                descriptions.forEach { description ->
+                    Text(
+                        text = description,
+                        fontSize = 12.sp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.width(40.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun LineChartScreen(dataPoints: MutableList<Float>) {
+fun LineChartScreen(dataPoints: MutableList<Float>, data: MutableList<String>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -581,17 +610,13 @@ fun LineChartScreen(dataPoints: MutableList<Float>) {
     ) {
         LineChart(
             dataPoints = dataPoints,
+            descriptions = data,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(150.dp)
         )
     }
 
 
 }
-
-
-
-
-
 

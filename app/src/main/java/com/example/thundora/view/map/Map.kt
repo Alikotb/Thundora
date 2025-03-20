@@ -1,9 +1,9 @@
 package com.example.thundora.view.map
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -39,15 +40,11 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.maps.android.compose.rememberCameraPositionState
 
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapType
-import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.colorResource
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,47 +52,63 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
+import com.example.thundora.model.remotedatasource.ApiClient
+import com.example.thundora.model.remotedatasource.RemoteDataSource
+import com.example.thundora.model.repositary.Repository
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 
-@SuppressLint("UnrememberedMutableState")
+@SuppressLint("UnrememberedMutableState", "CoroutineCreationDuringComposition")
 @Composable
 fun MapScreen(
-    navToHome: () -> Unit
+    latitude: Double,
+    longitude: Double,
+    navToHome: (lat: Double, lon: Double) -> Unit
 ) {
+    val viewModel: MapViewModel =
+        viewModel(
+            factory = MapFactory(
+                LocalContext.current,
+                Repository.getInstance(RemoteDataSource(ApiClient.weatherService))
+            )
+        )
+    val locationState = viewModel.location.observeAsState()
+    val location = locationState.value
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val viewModel = MapViewModel(context)
     val text = remember { mutableStateOf("") }
-
+    val locationMap = remember { mutableStateOf(LatLng(latitude, longitude)) }
     val predictionsState = remember { mutableStateOf(emptyList<AutocompletePrediction>()) }
     val selectedPrediction = remember { mutableStateOf<AutocompletePrediction?>(null) }
-    val selectedIndex = remember { mutableStateOf(-1) }
     val isExpanded = remember { mutableStateOf(false) }
+    val markerState = remember { MarkerState.Companion(position = locationMap.value) }
+    val cameraPositionState = rememberCameraPositionState {}
+    LaunchedEffect(location) {
+        location?.let {
+            Log.d("MapScreen", "Updating camera to lat: $latitude, lon: $longitude")
 
-    val atasehir = LatLng(40.9971, 29.1007)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(atasehir, 15f)
-    }
-    var uiSettings by remember {
-        mutableStateOf(MapUiSettings(zoomControlsEnabled = true))
-    }
-    var properties by remember {
-        mutableStateOf(MapProperties(mapType = MapType.SATELLITE))
+            locationMap.value = LatLng(it.lat, it.lon)
+
+            markerState.position = locationMap.value
+
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(locationMap.value, 15f)
+        }
     }
 
+    viewModel.getCityLocation(selectedPrediction.value?.getPrimaryText(null).toString())
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        Log.i("MapScreen", "Received lat: $latitude, lon: $longitude")
+
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            properties = properties,
-            uiSettings = uiSettings
-        ) {
+
+            ) {
             Marker(
-                state = MarkerState(position = atasehir),
+                state = markerState,
                 title = "One Marker"
             )
         }
@@ -113,15 +126,12 @@ fun MapScreen(
                 onValueChange = { query ->
                     text.value = query
                     isExpanded.value = true
-                    //isExpanded =
                     scope.launch {
                         predictionsState.value =
                             viewModel.getAddressPredictions(inputString = query)
                     }
                 },
-                label = {
-                    Text("Search", color = colorResource(R.color.red_600))
-                },
+                label = { Text("Search", color = colorResource(R.color.red_600)) },
                 singleLine = true,
                 textStyle = TextStyle(
                     color = colorResource(R.color.black),
@@ -134,10 +144,8 @@ fun MapScreen(
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                         RoundedCornerShape(12.dp)
                     )
-                    .border(1.dp, colorResource(R.color.blue_1200), RoundedCornerShape(12.dp))
                     .padding(8.dp)
             )
-
             if (isExpanded.value && predictionsState.value.isNotEmpty()) {
                 Card(
                     modifier = Modifier
@@ -158,6 +166,7 @@ fun MapScreen(
                                         predictionsState.value = emptyList()
                                         isExpanded.value = false
                                         selectedPrediction.value = prediction
+
                                     }
                                     .padding(vertical = 12.dp, horizontal = 8.dp)
                             )
@@ -167,10 +176,15 @@ fun MapScreen(
                 }
             }
         }
-        ExpandableFAB(navToHome)
+        ExpandableFAB(
+            navToHome = {
+                location?.let {
+                    navToHome(it.lat, it.lon)
+                }
+            }
+        )
     }
 }
-
 
 @Composable
 fun ExpandableFAB(navToHome: () -> Unit) {
@@ -239,3 +253,5 @@ fun ExpandableFAB(navToHome: () -> Unit) {
         }
     }
 }
+
+

@@ -19,6 +19,7 @@ android {
         load(File(rootProject.projectDir, "local.properties").inputStream())
     }
     val weatherApiKey: String = localProperties.getProperty("WEATHER_API_KEY") ?: ""
+    val googleMapsApiKey: String = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
     defaultConfig {
         applicationId = "com.example.thundora"
@@ -30,6 +31,7 @@ android {
 
         // Pass API key to BuildConfig
         buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", googleMapsApiKey)
     }
 
     buildTypes {
@@ -41,6 +43,7 @@ android {
             )
         }
     }
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -102,6 +105,8 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:6.4.1")
 
     implementation("com.google.android.libraries.places:places:3.1.0")
+    implementation("com.google.maps.android:places-compose:0.1.2")
+
 
 
 

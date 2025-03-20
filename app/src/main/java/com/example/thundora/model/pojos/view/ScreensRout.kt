@@ -1,11 +1,22 @@
 package com.example.thundora.model.pojos.view
 
-sealed class ScreensRout(val route: String) {
-    object Splash : ScreensRout("splash")
-    object Home : ScreensRout("home")
-    object Alarm : ScreensRout("alarm")
-    object Favorite : ScreensRout("favorite")
-    object Setting : ScreensRout("setting")
-    object Map : ScreensRout("map")
+import kotlinx.serialization.Serializable
+
+sealed class ScreensRout {
+    @Serializable
+    object Splash : ScreensRout()
+    @Serializable
+    data class Home(val lat: Double, val lon: Double) : ScreensRout()
+    @Serializable
+    object Alarm : ScreensRout()
+    @Serializable
+    object Favorite : ScreensRout()
+    @Serializable
+    object Setting : ScreensRout()
+    @Serializable
+    data class Map(
+        val lat: Double,
+        val lon: Double
+    ) : ScreensRout()
 
 }
