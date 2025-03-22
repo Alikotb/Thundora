@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +24,8 @@ import com.example.thundora.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun Splash() {
+fun Splash(flag: MutableState<Boolean>,navToHome:()->Unit) {
+    flag.value=false
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash2))
 
@@ -36,6 +38,7 @@ fun Splash() {
             )
         )
         delay(2500L)
+        navToHome()
 
     }
 

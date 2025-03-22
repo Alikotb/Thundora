@@ -1,38 +1,37 @@
 package com.example.thundora.view.home.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.model.pojos.api.Forecast
-import com.example.thundora.model.pojos.api.Weather
+import com.example.thundora.model.pojos.api.ApiResponse
+import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.repositary.Repository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repository) : ViewModel() {
-    private val _weather = MutableLiveData<Weather?>()
-    val weather: MutableLiveData<Weather?> = _weather
+    private val _forecast = MutableStateFlow<Response<ApiResponse>>(Response.Loading)
+    val forecast = _forecast.asStateFlow()
+    private val _messageState = MutableStateFlow<String>("")
+    val message = _messageState.asStateFlow()
 
-    private val _forecast = MutableLiveData<Forecast?>()
-    val forecast: MutableLiveData<Forecast?> = _forecast
-    private val _error = MutableLiveData<String?>()
 
     fun getForecast(lat: Double, lon: Double, units: String) {
         viewModelScope.launch {
             try {
-                _forecast.postValue(repo.getForecast(lat, lon, units))
+                repo.getApiForecast(lat, lon, units)
+                    .catch {
+                        _messageState.emit(it.message ?: "Unknown error")
+                    }
+                    .collect { apiForecast ->
+                        _forecast.emit(Response.Success(apiForecast))
+                    }
             } catch (e: Exception) {
-                _error.postValue(e.message)
+                _messageState.emit(e.message ?: "Unknown error")
             }
-        }
-    }
 
-    fun getWeather(lat: Double, lon: Double, units: String) {
-        viewModelScope.launch {
-            try {
-                _weather.postValue(repo.getWeather(lat, lon, units))
-            } catch (e: Exception) {
-                _error.postValue(e.message)
-            }
         }
+
     }
 }

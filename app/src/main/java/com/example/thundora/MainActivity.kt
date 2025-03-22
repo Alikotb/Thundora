@@ -29,28 +29,27 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
+import com.example.thundora.model.pojos.view.ScreensRout
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.navigation.SetUpNavHost
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
 
+    lateinit var flag :MutableState<Boolean>
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
+            flag = remember { mutableStateOf(true) }
             navController = rememberNavController()
-            var splashFlag by remember { mutableStateOf(false) }
+           // var splashFlag by remember { mutableStateOf(false) }
 
-            LaunchedEffect(Unit) {
-                delay(3500L)
-                splashFlag = true
-            }
 
-            MainScreen(splashFlag)
+            MainScreen(flag)
         }
     }
 
@@ -58,10 +57,11 @@ class MainActivity : ComponentActivity() {
     fun BottomNavigationBar(navController: NavController) {
         val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
         val navigationItems = listOf(
-            BottomNAvigationBar("Home", Icons.Filled.Home, Icons.Outlined.Home),
-            BottomNAvigationBar("Alarm", Icons.Filled.Notifications, Icons.Outlined.Notifications),
-            BottomNAvigationBar("Favorite", Icons.Filled.Favorite, Icons.Outlined.Favorite),
-            BottomNAvigationBar("Setting", Icons.Filled.Settings, Icons.Outlined.Settings)
+            BottomNAvigationBar(ScreensRout.Home(0.0,0.0),"Home", Icons.Filled.Home, Icons.Outlined.Home),
+            BottomNAvigationBar(ScreensRout.Alarm,"Alarm", Icons.Filled.Notifications, Icons.Outlined.Notifications),
+            BottomNAvigationBar(ScreensRout.Favorite, "Favorite",Icons.Filled.Favorite, Icons.Outlined.Favorite),
+            BottomNAvigationBar(ScreensRout.Settings,"Setting", Icons.Filled.Settings, Icons.Outlined.Settings)
+
         )
 
         NavigationBar(containerColor = DeepBlue) {
@@ -84,13 +84,13 @@ class MainActivity : ComponentActivity() {
                     icon = {
                         Icon(
                             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.title,
+                            contentDescription = null,
                             tint = if (isSelected) Color.White else colorResource(R.color.blue_200)
                         )
                     },
                     label = {
                         Text(
-                            text = item.title,
+                            text = item.label,
                             color = if (isSelected) Color.White else colorResource(R.color.blue_200),
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
@@ -107,13 +107,18 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
-    fun MainScreen(splashFlag: Boolean) {
+    fun MainScreen(flag: MutableState<Boolean>) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            bottomBar = { if (splashFlag) BottomNavigationBar(navController) }
+            bottomBar = {
+                if (flag.value)
+                {
+                    BottomNavigationBar(navController)
+                }
+            }
         ) { innerPadding ->
 
-            SetUpNavHost(navController = navController, splashFlag)
+            SetUpNavHost(navController = navController,flag)
 
         }
     }

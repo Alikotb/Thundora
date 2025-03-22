@@ -29,9 +29,8 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Pass API key to BuildConfig
         buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", googleMapsApiKey)
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "$googleMapsApiKey")
     }
 
     buildTypes {
@@ -110,15 +109,15 @@ dependencies {
 
 
 
-    implementation ("androidx.compose.ui:ui:1.0.5")
-    implementation ("androidx.compose.material:material:1.0.5")
-    implementation ("androidx.compose.ui:ui-tooling:1.0.5")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.0.5")
+    implementation("androidx.compose.ui:ui:1.0.5")
+    implementation("androidx.compose.material:material:1.0.5")
+    implementation("androidx.compose.ui:ui-tooling:1.0.5")
+    implementation("androidx.compose.runtime:runtime-livedata:1.0.5")
 
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
 
-    implementation ("androidx.constraintlayout:constraintlayout-compose:1.1.1")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 }
 
 

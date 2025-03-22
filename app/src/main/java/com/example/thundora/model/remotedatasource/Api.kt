@@ -12,6 +12,7 @@ interface WeatherService {
     suspend fun getWeather(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
+        @Query("lang") lang : String="en",
         @Query("units") units: String = "metric"
     ): Response<Weather>
 
@@ -19,6 +20,7 @@ interface WeatherService {
     suspend fun getForecast(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
+        @Query("lang") lang : String="en",
         @Query("units") units: String = "metric"
     ): Response<Forecast>
 

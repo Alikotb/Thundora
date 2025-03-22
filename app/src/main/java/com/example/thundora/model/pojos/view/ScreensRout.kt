@@ -12,11 +12,8 @@ sealed class ScreensRout {
     @Serializable
     object Favorite : ScreensRout()
     @Serializable
-    object Setting : ScreensRout()
+    object Settings : ScreensRout()
     @Serializable
-    data class Map(
-        val lat: Double,
-        val lon: Double
-    ) : ScreensRout()
+    object Map: ScreensRout()
 
 }

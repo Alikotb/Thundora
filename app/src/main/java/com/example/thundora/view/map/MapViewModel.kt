@@ -2,14 +2,12 @@ package com.example.thundora.view.map
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.BuildConfig
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
+import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.repositary.Repository
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.PlaceTypes
@@ -18,36 +16,47 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 import com.google.android.libraries.places.api.Places
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
-class MapViewModel( context: Context,private val  repo: Repository): ViewModel()  {
+class MapViewModel(context: Context, private val repo: Repository) : ViewModel() {
     private val client = Places.createClient(context)
-    private val locationLiveData = MutableLiveData<GeocodingResponseItem?>()
-    val location: LiveData<GeocodingResponseItem?> = locationLiveData
-    private val _error = MutableLiveData<String?>()
+    private val _locationState = MutableStateFlow<Response<GeocodingResponseItem>>(Response.Loading)
+    val locationFlow = _locationState.asStateFlow()
+    private val _error = MutableStateFlow<String>("")
+    val error = _error.asStateFlow()
 
     init {
         Places.initialize(context, BuildConfig.GOOGLE_MAPS_API_KEY)
     }
 
-    fun getCityLocation(city: String){
+    fun getCityLocation(city: String) {
         viewModelScope.launch {
             try {
-                locationLiveData.postValue(repo.getCoordinates(city)[0])
-                Log.i("has", "getCityLocation:${repo.getCoordinates(city)[0].lon}")
+                repo.getCoordinates(city)
+                    .catch {
+                        _error.emit(it.message ?: "Unknown error")
+                        Log.i("zz", "croutin catch: ${it.message})}")
 
-            } catch (
-                e: Exception
-            ) {
-                _error.postValue(e.message)
+                    }
+                    .collect {
+                        Log.i("zz", "getCityLocation: ${Response.Success(it[0])}")
+                        _locationState.emit(Response.Success(it[0]))
+                    }
+            } catch (e: Exception) {
+                _error.emit(e.message ?: "Unknown error")
+                Log.i("zz", "try catch: ${e.message}")
+
             }
         }
 
     }
+
     suspend fun getAddressPredictions(
         sessionToken: AutocompleteSessionToken = AutocompleteSessionToken.newInstance(),
         inputString: String,
-        location: LatLng? = null
     ): List<AutocompletePrediction> = suspendCoroutine { continuation ->
 
         val request = FindAutocompletePredictionsRequest.builder()

@@ -1,5 +1,8 @@
+@file:Suppress("CAST_NEVER_SUCCEEDS")
+
 package com.example.thundora.view.home
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -12,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,13 +38,16 @@ import com.example.thundora.ui.theme.DarkBlue
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.thundora.model.pojos.api.ApiResponse
+import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
@@ -53,32 +58,68 @@ import com.example.thundora.view.home.viewmodel.HomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(lat: Double, lon: Double, navToMaps: (latitude: Double, longitude: Double) -> Unit) {
+fun HomeScreen(
+    flag: MutableState<Boolean>,
+    navToMaps: (latitude: Double, longitude: Double) -> Unit
+) {
 
     val viewModel: HomeViewModel =
         viewModel(factory = HomeFactory(Repository.getInstance(RemoteDataSource(ApiClient.weatherService))))
+    val apiForcast by viewModel.forecast.collectAsStateWithLifecycle()
+    val error by viewModel.message.collectAsStateWithLifecycle()
 
 
-    val weatherState by viewModel.weather.observeAsState()
-    val forecastState = viewModel.forecast.observeAsState()
+    val shared = LocalContext.current.getSharedPreferences("loc", Context.MODE_PRIVATE)
+    val x = shared.getString("lat", "0.0")?.toDouble() ?: 0.0
+    val y = shared.getString("long", "0.0")?.toDouble() ?: 0.0
+    flag.value = true
+
     var dataPoints: MutableList<Float> = mutableListOf()
     var hourlyData: MutableList<String> = mutableListOf()
     LaunchedEffect(viewModel) {
-
-        viewModel.getWeather(lat, lon, Units.METRIC.toString())
-        viewModel.getForecast(lat, lon, Units.METRIC.toString())
+        viewModel.getForecast(x, y, Units.METRIC.toString())
     }
 
-    dataPoints = forecastState.value?.list?.take(4)?.map {
-        it.main.temp.toFloat()
-    }?.toMutableList() ?: mutableListOf()
-    hourlyData = forecastState.value?.list?.take(4)?.map {
-        "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it.dt * 1000L))}\n" +
-                "${
-                    it.main.temp
-                } C"
-    }?.toMutableList() ?: mutableListOf()
 
+    when (apiForcast) {
+        is Response.Success -> {
+            dataPoints = (apiForcast as Response.Success).data.forecast.list.take(4).map {
+                it.main.temp.toFloat()
+            }.toMutableList()
+            hourlyData = (apiForcast as Response.Success).data.forecast.list.take(4).map {
+                "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(it.dt * 1000L))}\n" +
+                        "${it.main.temp} C"
+            }.toMutableList()
+            Home((apiForcast as Response.Success).data, flag, navToMaps, dataPoints, hourlyData)
+        }
+
+        is Response.Error -> {
+            Text(text = (error as Response.Error).message)
+
+        }
+
+        is Response.Loading -> {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .wrapContentSize()
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+
+}
+
+
+@Composable
+fun Home(
+    apiForcast: ApiResponse,
+    flag: MutableState<Boolean>,
+    navToMaps: (latitude: Double, longitude: Double) -> Unit,
+    dataPoints: MutableList<Float>,
+    hourlyData: MutableList<String>
+) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -88,20 +129,18 @@ fun HomeScreen(lat: Double, lon: Double, navToMaps: (latitude: Double, longitude
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(48.dp))
-        weatherState?.let { WeatherCard(it) { navToMaps(it.coord.lat, it.coord.lon) } }
-
-        forecastState?.let { WeatherForecast(it.value) }
+        apiForcast.weather.let { WeatherCard(it, flag) { navToMaps(it.coord.lat, it.coord.lon) } }
+        apiForcast.forecast.let { WeatherForecast(it) }
         Spacer(Modifier.height(4.dp))
-        DayDisplay(forecastState.value)
+        DayDisplay(apiForcast.forecast)
         LineChartScreen(dataPoints, hourlyData)
         Spacer(Modifier.height(100.dp))
-
     }
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
+fun WeatherCard(weatherState: Weather?, flag: MutableState<Boolean>, navToMaps: () -> Unit) {
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
     val iconUrl = "https://openweathermap.org/img/wn/$iconCode.png"
     Card(
@@ -132,9 +171,12 @@ fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .clickable(
-                            onClick = { navToMaps() }
+                            onClick = {
+                                flag.value = false
+                                navToMaps()
+                            }
                         ),
-                    )
+                )
                 Column {
                     Text(
                         text = SimpleDateFormat("EEEE", Locale.getDefault()).format(
@@ -224,7 +266,6 @@ fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
                     icon = ImageVector.vectorResource(id = R.drawable.sunrise),
                     iconTint = Color.Yellow
                 )
-
                 WeatherInfo(
                     value = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(
                         Date((weatherState?.sys?.sunset ?: 0) * 1000L)
@@ -233,7 +274,6 @@ fun WeatherCard(weatherState: Weather?, navToMaps: () -> Unit) {
                     icon = ImageVector.vectorResource(id = R.drawable.sunsunset),
                     iconTint = Color.Yellow
                 )
-
                 WeatherInfo(
                     value = weatherState?.main?.sea_level?.toString() ?: "--",
                     unit = "",
@@ -325,10 +365,7 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(color = colorResource(R.color.deep_blue))
-            .padding(
-                vertical = 8.dp
-            )
-
+            .padding(vertical = 8.dp)
     ) {
         val (descripyion, image, tempereture) = createRefs()
         Column(
@@ -362,9 +399,7 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
                     bottom.linkTo(parent.bottom)
 
                 }
-
         )
-
         GlideImage(
             model = "https://openweathermap.org/img/wn/$icon.png",
             contentDescription = "Weather Icon",
@@ -378,7 +413,6 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
                 .size(48.dp)
         )
     }
-
 }
 
 @Composable
@@ -432,7 +466,6 @@ fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Uni
     var showBottomSheet by remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { onClose() },
@@ -443,8 +476,7 @@ fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Uni
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -475,9 +507,7 @@ fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Uni
                         color = Color.White,
 
                         )
-
                     Spacer(Modifier.height(16.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround
@@ -501,10 +531,7 @@ fun WeatherForecastBottomSheet(weatherState: Forecast.Item0?, onClose: () -> Uni
                             iconTint = Color.White
                         )
                     }
-
                     Spacer(Modifier.height(16.dp))
-
-                    // Displaying Cloud Coverage and Rain
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround
@@ -553,13 +580,10 @@ fun LineChart(
     lineWidth: Float = 4f
 ) {
     if (dataPoints.isEmpty()) return
-
     val maxValue = dataPoints.maxOrNull() ?: 1f
-
-
     Box(modifier = modifier) {
         Canvas(modifier = modifier) {
-            val widthStep = size.width / (dataPoints.size - 1) // X position spacing
+            val widthStep = size.width / (dataPoints.size - 1)
             val path = Path().apply {
                 moveTo(0f, size.height - (dataPoints[0] / maxValue) * size.height)
                 dataPoints.forEachIndexed { index, dataPoint ->
@@ -616,7 +640,5 @@ fun LineChartScreen(dataPoints: MutableList<Float>, data: MutableList<String>) {
                 .height(150.dp)
         )
     }
-
-
 }
 
