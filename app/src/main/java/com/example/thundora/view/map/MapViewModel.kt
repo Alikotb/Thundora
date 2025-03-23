@@ -1,10 +1,8 @@
 package com.example.thundora.view.map
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.BuildConfig
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.repositary.Repository
@@ -14,23 +12,19 @@ import com.google.android.libraries.places.api.model.PlaceTypes
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-
-import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
-class MapViewModel(context: Context, private val repo: Repository) : ViewModel() {
-    private val client = Places.createClient(context)
+class MapViewModel(private val client: PlacesClient, private val repo: Repository) : ViewModel() {
+
     private val _locationState = MutableStateFlow<Response<GeocodingResponseItem>>(Response.Loading)
     val locationFlow = _locationState.asStateFlow()
     private val _error = MutableStateFlow<String>("")
     val error = _error.asStateFlow()
 
-    init {
-        Places.initialize(context, BuildConfig.GOOGLE_MAPS_API_KEY)
-    }
 
     fun getCityLocation(city: String) {
         viewModelScope.launch {

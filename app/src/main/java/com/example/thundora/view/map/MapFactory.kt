@@ -1,12 +1,13 @@
 package com.example.thundora.view.map
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.thundora.model.repositary.Repository
+import com.google.android.libraries.places.api.net.PlacesClient
 
-class MapFactory(val context: Context,val repo: Repository) :ViewModelProvider.Factory {
+@Suppress("UNCHECKED_CAST")
+class MapFactory(val client: PlacesClient, val repo: Repository) :ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return MapViewModel(context ,repo) as T
+        return MapViewModel(client ,repo) as T
     }
 }

@@ -7,14 +7,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class RemoteDataSource(val api: WeatherService) {
-    suspend fun getWeather(lat: Double, lon: Double,units:String): Flow<Weather> {
-        val response = api.getWeather(lat, lon,units)
+    suspend fun getWeather(lat: Double, lon: Double,units:String,language:String): Flow<Weather> {
+        val response = api.getWeather(
+            lon = lon,
+            lat = lat,
+            units = units,
+            lang = language
+        )
         return flowOf (
             response.body()!!
         )
     }
-    suspend fun getForecast(lat: Double, lon: Double,units:String): Flow<Forecast> {
-        val response = api.getForecast(lat, lon,units)
+    suspend fun getForecast(lat: Double, lon: Double,units:String,language:String): Flow<Forecast> {
+        val response = api.getForecast(
+            lon = lon,
+            lat = lat,
+            units = units,
+            lang = language)
         return flowOf (
             response.body()!!
         )

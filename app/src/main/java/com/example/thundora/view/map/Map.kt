@@ -33,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,17 +64,32 @@ import com.example.thundora.model.pojos.api.Response
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.maps.android.compose.CameraPositionState
 import androidx.core.content.edit
+import com.example.thundora.BuildConfig
+import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.LocalDataSource
+import com.google.android.libraries.places.api.Places
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
 
 
 @Composable
 fun MapScreen(
     navToHome: (lat: Double, lon: Double) -> Unit
 ) {
+    val client = Places.createClient(LocalContext.current)
     val viewModel: MapViewModel =
         viewModel(
             factory = MapFactory(
-                LocalContext.current,
-                Repository.getInstance(RemoteDataSource(ApiClient.weatherService))
+                client,
+                Repository.getInstance(
+                    RemoteDataSource(ApiClient.weatherService),
+                    LocalDataSource(
+                        ForecastDataBase.getInstance(
+                            LocalContext.current
+                        ).getForecastDao()
+                    )
+                )
             )
         )
     val shared = LocalContext.current.getSharedPreferences(
@@ -83,40 +97,17 @@ fun MapScreen(
         Context.MODE_PRIVATE
     )
     val locationState = viewModel.locationFlow.collectAsStateWithLifecycle()
-    val error = viewModel.error.collectAsStateWithLifecycle()
     val x = shared.getString("lat", "0.0")?.toDouble() ?: 0.0
     val y = shared.getString("long", "0.0")?.toDouble() ?: 0.0
     val markerState = remember { mutableStateOf(MarkerState(LatLng(x, y))) }
-
+    Places.initialize(LocalContext.current, BuildConfig.googleApiKey)
     val selectedPrediction = remember { mutableStateOf<AutocompletePrediction?>(null) }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
     }
-
-    LaunchedEffect(locationState.value) {
-        when (val result = locationState.value) {
-            is Response.Success -> {
-                val data = result.data
-                if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
-                    shared.edit() { putString("lat", data.lat.toString()) }
-                    shared.edit() { putString("long", data.lon.toString()) }
-                    markerState.value.position = LatLng(data.lat, data.lon)
-                }
-                cameraPositionState.position =
-                    CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
-            }
-
-            is Response.Error -> {
-            }
-
-            Response.Loading -> {
-            }
-        }
-    }
     viewModel.getCityLocation(selectedPrediction.value?.getPrimaryText(null).toString())
     when (locationState.value) {
         is Response.Error -> {
-
         }
 
         Response.Loading -> {
@@ -130,6 +121,14 @@ fun MapScreen(
         }
 
         is Response.Success<GeocodingResponseItem> -> {
+            val data = (locationState.value as Response.Success<GeocodingResponseItem>).data
+            if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
+                shared.edit() { putString("lat", data.lat.toString()) }
+                shared.edit() { putString("long", data.lon.toString()) }
+                markerState.value.position = LatLng(data.lat, data.lon)
+            }
+            cameraPositionState.position =
+                CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
             MapBransh(
                 navToHome = navToHome,
                 viewModel = viewModel,
@@ -155,14 +154,27 @@ fun MapBransh(
     val text = remember { mutableStateOf("") }
     val predictionsState = remember { mutableStateOf(emptyList<AutocompletePrediction>()) }
     val isExpanded = remember { mutableStateOf(false) }
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         GoogleMap(
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                compassEnabled = false,
+                mapToolbarEnabled = false
+            ),
             modifier = Modifier.fillMaxSize(),
+            properties = MapProperties(mapType = MapType.HYBRID, isMyLocationEnabled = false),
             cameraPositionState = cameraPositionState,
-        ) {
+            onMapClick = {
+                markerState.value = MarkerState(it)
+                // selectedPrediction.value
+            },
+            onMapLongClick = {
+                markerState.value = MarkerState(it)
+            },
+
+            ) {
             Marker(
                 state = markerState.value,
                 title = "One Marker"
@@ -311,5 +323,4 @@ fun ExpandableFAB(navToHome: () -> Unit) {
         }
     }
 }
-
 

@@ -1,7 +1,11 @@
 package com.example.thundora
 
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -31,12 +36,18 @@ import androidx.navigation.compose.rememberNavController
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
 import com.example.thundora.ui.theme.DeepBlue
+import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.navigation.SetUpNavHost
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
+const val LOCATION_CODE = 27
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationState: MutableState<Location>
     lateinit var flag :MutableState<Boolean>
+    val gpsLocation = GPSLocation
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -44,12 +55,33 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            locationState = remember { mutableStateOf(Location("")) }
             flag = remember { mutableStateOf(true) }
             navController = rememberNavController()
-           // var splashFlag by remember { mutableStateOf(false) }
 
+            Log.i("al", "onCreate: ${locationState.value.longitude}")
 
             MainScreen(flag)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+        if (requestCode == LOCATION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                gpsLocation.getLocation(locationState,fusedLocationClient, Looper.getMainLooper())
         }
     }
 
@@ -117,7 +149,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         ) { innerPadding ->
-
             SetUpNavHost(navController = navController,flag)
 
         }
@@ -138,4 +169,27 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    fun gpsLocation(){
+        if (gpsLocation.checkPermission(this)) {
+            if (!gpsLocation.isLocationEnabled(this)) {
+                gpsLocation.enableLocationService(this)
+            } else {
+                gpsLocation.getLocation(locationState = locationState,fusedLocationClient, Looper.getMainLooper())
+            }
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                LOCATION_CODE
+            )
+        }
+
+    }
+
+
 }
+

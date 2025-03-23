@@ -242,7 +242,12 @@ fun LocationSelectionChips() {
                 listOf("Gps", "Map").forEach { option ->
                     FilterChip(
                         selected = (option == selectedOption),
-                        onClick = { selectedOption = option },
+                        onClick = {
+                            selectedOption = option
+                                  if(selectedOption.toString()=="Gps"){
+
+                                  }
+                                  },
                         enabled = true,
                         label = {
                             Text(
@@ -335,7 +340,7 @@ fun WendSpeedSelectionChips() {
 @Composable
 fun ContactUsSection() {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E3A8A)), // Dark blue
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E3A8A)),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .padding(16.dp)

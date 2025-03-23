@@ -19,7 +19,6 @@ android {
         load(File(rootProject.projectDir, "local.properties").inputStream())
     }
     val weatherApiKey: String = localProperties.getProperty("WEATHER_API_KEY") ?: ""
-    val googleMapsApiKey: String = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
     defaultConfig {
         applicationId = "com.example.thundora"
@@ -29,9 +28,9 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "$googleMapsApiKey")
-    }
+        buildConfigField("String", "WEATHER_API_KEY", weatherApiKey)
+        buildConfigField("String", "googleApiKey", localProperties.getProperty("GOOGLE_MAPS_API_KEY"))
+        resValue ("string", "googleApiKey", localProperties.getProperty("GOOGLE_MAPS_API_KEY"))    }
 
     buildTypes {
         release {
@@ -115,6 +114,8 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.0.5")
 
     implementation("com.google.android.gms:play-services-location:21.1.0")
+
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.35.0-alpha")
 
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")

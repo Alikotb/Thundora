@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Thundora</string>
+    <string name="unknown">Unknown</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="today">Today</string>
+    <string name="close">Close</string>
 </resources>

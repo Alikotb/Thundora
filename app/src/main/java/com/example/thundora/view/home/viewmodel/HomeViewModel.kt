@@ -17,10 +17,10 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
     val message = _messageState.asStateFlow()
 
 
-    fun getForecast(lat: Double, lon: Double, units: String) {
+    fun getForecast(lat: Double, lon: Double, units: String,language:String) {
         viewModelScope.launch {
             try {
-                repo.getApiForecast(lat, lon, units)
+                repo.getApiForecast(lat, lon, units,language)
                     .catch {
                         _messageState.emit(it.message ?: "Unknown error")
                     }
