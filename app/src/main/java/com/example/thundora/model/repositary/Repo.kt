@@ -61,6 +61,15 @@ class Repository private constructor(private val remote: RemoteDataSource,privat
     override suspend fun getAllRoomForecasts(): Flow<List<ForecastDto>> {
         return local.getAllForecasts()
     }
+    override fun <T> saveData(key: String, value: T) {
+        local.saveData(key, value)
+    }
+
+    override fun <T> fetchData(key: String, defaultValue: T): T {
+        return local.fetchData(key, defaultValue)
+    }
+
+
 
     override suspend fun getCoordinates(city: String): Flow<List<GeocodingResponseItem>>{
         return remote.getCoordinates(city)

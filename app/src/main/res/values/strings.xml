@@ -4,4 +4,17 @@
     <string name="weather_icon">Weather Icon</string>
     <string name="today">Today</string>
     <string name="close">Close</string>
+    <string name="language">Language</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_english">English</string>
+    <string name="temp_unit">Temp Unit</string>
+    <string name="celsius_c">Celsius °C</string>
+    <string name="fahrenheit_f">Fahrenheit °F</string>
+    <string name="kelvin_k">Kelvin °K</string>
+    <string name="location">Location</string>
+    <string name="gps">Gps</string>
+    <string name="map">Map</string>
+    <string name="wend_speed_unit">Wend Speed Unit</string>
+    <string name="select_language">Select Language</string>
 </resources>
+

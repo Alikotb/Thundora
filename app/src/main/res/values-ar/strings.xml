@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Thundora</string>
+    <string name="unknown">غير معروف</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="today">اليوم</string>
+    <string name="close">أغلق</string>
+    <string name="language">اللغة</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_english">English</string>
+    <string name="temp_unit">وحدة قياس الحرارة</string>
+    <string name="celsius_c">سيليزيوس س</string>
+    <string name="fahrenheit_f">فهرنهيت ف</string>
+    <string name="kelvin_k">كيلفن ك</string>
+    <string name="location">الموقع</string>
+    <string name="gps">جي بي اس</string>
+    <string name="map">الخريطة</string>
+    <string name="wend_speed_unit">وحدة قياس الرياح</string>
+    <string name="select_language">إختر اللغة</string>
+</resources>

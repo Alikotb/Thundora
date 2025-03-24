@@ -1,9 +1,10 @@
 package com.example.thundora.model.localdatasource
 
 import com.example.thundora.model.pojos.ForecastDto
+import com.example.thundora.model.sharedpreference.SharedPreference
 import kotlinx.coroutines.flow.Flow
 
-class LocalDataSource(private val dao: Dao) {
+class LocalDataSource(private val dao: Dao, private val sharedPreference: SharedPreference) {
 
      fun addForecast(forecast: ForecastDto) {
         dao.insert(forecast)
@@ -17,4 +18,11 @@ class LocalDataSource(private val dao: Dao) {
      fun getAllForecasts(): Flow<List<ForecastDto>> {
         return dao.getAllForecasts()
     }
+    fun <T> saveData(key: String, value: T) {
+        sharedPreference.saveData(key, value)
+    }
+    fun <T> fetchData(key: String, defaultValue: T): T {
+        return sharedPreference.fetchData(key, defaultValue)
+    }
+
 }

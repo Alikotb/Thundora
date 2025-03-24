@@ -1,7 +1,8 @@
 package com.example.thundora.view.settings
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,12 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,19 +37,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
+import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.LocalDataSource
+import com.example.thundora.model.pojos.view.SharedKeys
+import com.example.thundora.model.remotedatasource.ApiClient
+import com.example.thundora.model.remotedatasource.RemoteDataSource
+import com.example.thundora.model.repositary.Repository
+import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.ui.theme.DarkBlue
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SettingScreen() {
-
+fun SettingScreen(floatingFlag: MutableState<Boolean>) {
+    floatingFlag.value=false
+    val viewModel: SettingViewModel= viewModel(
+        factory = SettingsFactory(
+            Repository.getInstance(
+                RemoteDataSource(ApiClient.weatherService),
+                LocalDataSource(
+                    ForecastDataBase.getInstance(LocalContext.current).getForecastDao(),
+                    SharedPreference.getInstance()
+                )
+            )
+        )
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,17 +78,22 @@ fun SettingScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(48.dp))
-        LanguageSelectionChips()
-        TempSelectionChips()
-        LocationSelectionChips()
-        WendSpeedSelectionChips()
+        LanguageSelectionChips(viewModel)
+        TempSelectionChips(viewModel)
+        LocationSelectionChips(viewModel)
+        WendSpeedSelectionChips(viewModel)
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun LanguageSelectionChips() {
-    var selectedOption by remember { mutableStateOf("Arabic") }
+fun LanguageSelectionChips(view: SettingViewModel) {
+    val context = LocalContext.current
+    val defaultLanguage = "English"
+    var selectedOption by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        selectedOption = view.fetchData(SharedKeys.LANGUAGE.toString(), defaultLanguage) ?: defaultLanguage
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
@@ -90,7 +116,7 @@ fun LanguageSelectionChips() {
                         .padding(end = 12.dp),
                 )
                 Text(
-                    text = "Language",
+                    text = stringResource(R.string.select_language),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -106,19 +132,27 @@ fun LanguageSelectionChips() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                listOf("Arabic", "English", "German").forEach { option ->
+                listOf(stringResource(id = R.string.language_english), stringResource(id = R.string.language_arabic)).forEach { option ->
+                    val isSelected = option == selectedOption
+                    val chipColor = if (isSelected) Color(0xFF1565C0) else Color(0xFFBBDEFB)
+                    val textColor = if (isSelected) Color.White else Color.Black
+
                     FilterChip(
-                        selected = (option == selectedOption),
-                        onClick = { selectedOption = option },
-                        enabled = true,
+                        selected = isSelected,
+                        onClick = {
+                            selectedOption = option
+                            view.saveData(SharedKeys.LANGUAGE.toString(),selectedOption)
+                            restartActivity(context)
+                        },
                         label = {
                             Text(
                                 text = option,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = textColor
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF1565C0),
+                            selectedContainerColor = chipColor,
                             containerColor = Color(0xFFBBDEFB),
                             selectedLabelColor = Color.White,
                             labelColor = Color.Black
@@ -131,11 +165,24 @@ fun LanguageSelectionChips() {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun TempSelectionChips() {
-    var selectedOption by remember { mutableStateOf("Arabic") }
+fun TempSelectionChips(view: SettingViewModel) {
+    val cel = stringResource(R.string.celsius_c)
+    val far = stringResource(R.string.fahrenheit_f)
+    val kel = stringResource(R.string.kelvin_k)
+    var selectedOption by remember {
+        mutableStateOf("")
+    }
 
+    LaunchedEffect(Unit) {
+        val storedTemp = view.fetchData(SharedKeys.DEGREE.toString(),"celsius")
+        selectedOption = when (storedTemp) {
+            "celsius" -> cel
+            "fahrenheit" -> far
+            "kelvin" -> kel
+            else -> cel
+        }
+    }
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
         shape = RoundedCornerShape(12.dp),
@@ -157,7 +204,7 @@ fun TempSelectionChips() {
                         .padding(end = 12.dp),
                 )
                 Text(
-                    text = "Temp Unit",
+                    text = stringResource(R.string.temp_unit),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -172,19 +219,36 @@ fun TempSelectionChips() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                listOf("Celsius °C", "Fahrenheit °F", "Kelvin °K").forEach { option ->
+                listOf(
+                   cel,
+                    far,
+                    kel
+                ).forEach { option ->
+                    val isSelected = option == selectedOption
+                    var chipColor by remember { mutableStateOf(Color(0xFFBBDEFB)) }
+                    chipColor = if (isSelected) Color(0xFF1565C0) else Color(0xFFBBDEFB)
+                    val textColor = if (isSelected) Color.White else Color.Black
                     FilterChip(
-                        selected = (option == selectedOption),
-                        onClick = { selectedOption = option },
-                        enabled = true,
+                        selected = isSelected,
+                        onClick = {
+                            if(option==cel)
+                                selectedOption = "celsius"
+                            else if(option==far)
+                                selectedOption = "fahrenheit"
+                            else if(option==kel)
+                                selectedOption = "kelvin"
+                            view.saveData(SharedKeys.DEGREE.toString(),selectedOption)
+                            chipColor=Color(0xFF1565C0)
+                        },
                         label = {
                             Text(
                                 text = option,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = textColor
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF1565C0),
+                            selectedContainerColor = chipColor,
                             containerColor = Color(0xFFBBDEFB),
                             selectedLabelColor = Color.White,
                             labelColor = Color.Black
@@ -198,10 +262,12 @@ fun TempSelectionChips() {
 }
 
 
-@Preview(showBackground = true)
 @Composable
-fun LocationSelectionChips() {
-    var selectedOption by remember { mutableStateOf("Arabic") }
+fun LocationSelectionChips(view: SettingViewModel) {
+    val `default-location` = stringResource(R.string.location)
+    var selectedOption by remember {
+        mutableStateOf(view.fetchData(SharedKeys.LOCATION.toString(),`default-location`))
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
@@ -224,7 +290,7 @@ fun LocationSelectionChips() {
                         .padding(end = 12.dp),
                 )
                 Text(
-                    text = "Location",
+                    text = stringResource(R.string.location),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -239,15 +305,15 @@ fun LocationSelectionChips() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                listOf("Gps", "Map").forEach { option ->
+                listOf(stringResource(R.string.gps), stringResource(R.string.map)).forEach { option ->
                     FilterChip(
                         selected = (option == selectedOption),
                         onClick = {
                             selectedOption = option
-                                  if(selectedOption.toString()=="Gps"){
-
+                            view.saveData(SharedKeys.LOCATION.toString(),selectedOption)
+//                            shared.edit { putString("location", selectedOption) }
                                   }
-                                  },
+                        ,
                         enabled = true,
                         label = {
                             Text(
@@ -270,10 +336,15 @@ fun LocationSelectionChips() {
 }
 
 
-@Preview(showBackground = true)
 @Composable
-fun WendSpeedSelectionChips() {
-    var selectedOption by remember { mutableStateOf("Arabic") }
+fun WendSpeedSelectionChips(view: SettingViewModel) {
+    val `default-wend-speed` = stringResource(R.string.wend_speed_unit)
+    var selectedOption by remember {
+        mutableStateOf(view.fetchData(SharedKeys.SPEED_UNIT.toString(),`default-wend-speed`))
+    }
+
+
+
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
@@ -296,7 +367,7 @@ fun WendSpeedSelectionChips() {
                         .padding(end = 12.dp),
                 )
                 Text(
-                    text = "Wend Speed Unit",
+                    text = stringResource(R.string.wend_speed_unit),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -314,7 +385,10 @@ fun WendSpeedSelectionChips() {
                 listOf("meter/sec", "mile/hour").forEach { option ->
                     FilterChip(
                         selected = (option == selectedOption),
-                        onClick = { selectedOption = option },
+                        onClick = {
+                            selectedOption = option
+                            view.saveData(SharedKeys.SPEED_UNIT.toString(),selectedOption)
+                                  },
                         enabled = true,
                         label = {
                             Text(
@@ -413,4 +487,9 @@ fun ContactImageIcon(imageRes: Int, contentDesc: String, onClick: () -> Unit) {
     )
 }
 
-
+fun restartActivity(context: Context) {
+    val intent = (context as? Activity)?.intent
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+    (context as? Activity)?.finish()
+}

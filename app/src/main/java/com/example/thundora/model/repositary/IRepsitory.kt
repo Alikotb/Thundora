@@ -21,5 +21,9 @@ interface IRepository {
     suspend fun addRoomForecast(forecast: ForecastDto)
     suspend fun deleteRoomForecast(lat: Double, lon: Double)
     suspend fun getAllRoomForecasts(): Flow<List<ForecastDto>>
+    fun <T> saveData(key: String, value: T)
+    fun <T> fetchData(key: String, defaultValue: T): T
+
+
 
 }

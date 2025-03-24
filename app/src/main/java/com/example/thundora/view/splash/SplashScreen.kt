@@ -24,7 +24,7 @@ import com.example.thundora.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun Splash(flag: MutableState<Boolean>,navToHome:()->Unit) {
+fun Splash(flag: MutableState<Boolean>, navToHome: () -> Unit) {
     flag.value=false
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash2))
@@ -37,7 +37,7 @@ fun Splash(flag: MutableState<Boolean>,navToHome:()->Unit) {
                 easing = { OvershootInterpolator(2f).getInterpolation(it) }
             )
         )
-        delay(2500L)
+        delay(3500L)
         navToHome()
 
     }

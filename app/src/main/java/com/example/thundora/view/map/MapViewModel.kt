@@ -23,7 +23,6 @@ class MapViewModel(private val client: PlacesClient, private val repo: Repositor
     private val _locationState = MutableStateFlow<Response<GeocodingResponseItem>>(Response.Loading)
     val locationFlow = _locationState.asStateFlow()
     private val _error = MutableStateFlow<String>("")
-    val error = _error.asStateFlow()
 
 
     fun getCityLocation(city: String) {

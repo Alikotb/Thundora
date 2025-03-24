@@ -1,7 +1,8 @@
 package com.example.thundora.view.map
 
-import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,11 +25,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -36,47 +37,66 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import kotlinx.coroutines.launch
-import androidx.compose.ui.res.colorResource
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.thundora.BuildConfig
 import com.example.thundora.R
+import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.LocalDataSource
+import com.example.thundora.model.pojos.api.GeocodingResponseItem
+import com.example.thundora.model.pojos.api.Response
+import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
+import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.view.settings.SettingViewModel
+import com.example.thundora.view.settings.SettingsFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.example.thundora.model.pojos.api.GeocodingResponseItem
-import com.example.thundora.model.pojos.api.Response
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.maps.android.compose.CameraPositionState
-import androidx.core.content.edit
-import com.example.thundora.BuildConfig
-import com.example.thundora.model.localdatasource.ForecastDataBase
-import com.example.thundora.model.localdatasource.LocalDataSource
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun MapScreen(
+    floatingFlag: MutableState<Boolean>,
     navToHome: (lat: Double, lon: Double) -> Unit
 ) {
+    val setingViewModel: SettingViewModel = viewModel(
+        factory = SettingsFactory(
+            Repository.getInstance(
+                RemoteDataSource(ApiClient.weatherService),
+                LocalDataSource(
+                    ForecastDataBase.getInstance(
+                        LocalContext.current
+                    ).getForecastDao(),
+                    SharedPreference.getInstance()
+                )
+            )
+        )
+    )
+
+    floatingFlag.value = false
     val client = Places.createClient(LocalContext.current)
     val viewModel: MapViewModel =
         viewModel(
@@ -87,18 +107,16 @@ fun MapScreen(
                     LocalDataSource(
                         ForecastDataBase.getInstance(
                             LocalContext.current
-                        ).getForecastDao()
+                        ).getForecastDao(),
+                        SharedPreference.getInstance()
                     )
                 )
             )
         )
-    val shared = LocalContext.current.getSharedPreferences(
-        "loc",
-        Context.MODE_PRIVATE
-    )
+
     val locationState = viewModel.locationFlow.collectAsStateWithLifecycle()
-    val x = shared.getString("lat", "0.0")?.toDouble() ?: 0.0
-    val y = shared.getString("long", "0.0")?.toDouble() ?: 0.0
+    val x = setingViewModel.fetchData(SharedKeys.LAT.toString(), "0.0").toDouble()
+    val y = setingViewModel.fetchData(SharedKeys.LON.toString(), "0.0").toDouble()
     val markerState = remember { mutableStateOf(MarkerState(LatLng(x, y))) }
     Places.initialize(LocalContext.current, BuildConfig.googleApiKey)
     val selectedPrediction = remember { mutableStateOf<AutocompletePrediction?>(null) }
@@ -123,8 +141,8 @@ fun MapScreen(
         is Response.Success<GeocodingResponseItem> -> {
             val data = (locationState.value as Response.Success<GeocodingResponseItem>).data
             if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
-                shared.edit() { putString("lat", data.lat.toString()) }
-                shared.edit() { putString("long", data.lon.toString()) }
+                setingViewModel.saveData(SharedKeys.LAT.toString(), data.lat.toString())
+                setingViewModel.saveData(SharedKeys.LON.toString(), data.lon.toString())
                 markerState.value.position = LatLng(data.lat, data.lon)
             }
             cameraPositionState.position =
@@ -168,7 +186,6 @@ fun MapBransh(
             cameraPositionState = cameraPositionState,
             onMapClick = {
                 markerState.value = MarkerState(it)
-                // selectedPrediction.value
             },
             onMapLongClick = {
                 markerState.value = MarkerState(it)
@@ -259,7 +276,6 @@ fun MapBransh(
 @Composable
 fun ExpandableFAB(navToHome: () -> Unit) {
     val isExpanded = remember { mutableStateOf(false) }
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomStart
@@ -285,7 +301,6 @@ fun ExpandableFAB(navToHome: () -> Unit) {
                             tint = Color.White
                         )
                     }
-
                     FloatingActionButton(
                         onClick = {
                             navToHome()

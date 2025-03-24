@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -30,40 +31,81 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
+import com.example.thundora.model.pojos.view.SharedKeys
+import com.example.thundora.model.remotedatasource.ApiClient
+import com.example.thundora.model.remotedatasource.RemoteDataSource
+import com.example.thundora.model.repositary.Repository
+import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.navigation.SetUpNavHost
+import com.example.thundora.view.settings.SettingViewModel
+import com.example.thundora.view.settings.SettingsFactory
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import java.util.Locale
 
 const val LOCATION_CODE = 27
+
 class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationState: MutableState<Location>
     lateinit var flag :MutableState<Boolean>
+    lateinit var floatingFlag: MutableState<Boolean>
     val gpsLocation = GPSLocation
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+
+        val repository = Repository.getInstance(
+            RemoteDataSource(ApiClient.weatherService),
+            LocalDataSource(
+                ForecastDataBase.getInstance(applicationContext).getForecastDao(),
+                SharedPreference.getInstance()
+            )
+        )
+        val settingViewModel: SettingViewModel = ViewModelProvider(this, SettingsFactory(repository))[SettingViewModel::class.java]
+        applyLanguage(
+            when ( settingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), Locale.getDefault().language)) {
+                "english", "الإنجليزية", "en" -> "en"
+                "arabic", "العربية", "ar" -> "ar"
+                else -> "en"
+            }
+        )
+
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
             locationState = remember { mutableStateOf(Location("")) }
             flag = remember { mutableStateOf(true) }
+            floatingFlag = remember { mutableStateOf(false) }
             navController = rememberNavController()
 
             Log.i("al", "onCreate: ${locationState.value.longitude}")
 
             MainScreen(flag)
         }
+    }
+
+    private fun applyLanguage(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     override fun onStart() {
@@ -104,13 +146,9 @@ class MainActivity : ComponentActivity() {
                     onClick = {
                         if (selectedNavigationIndex.intValue != index) {
                             selectedNavigationIndex.intValue = index
-                            navController.navigate(item.title) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.popBackStack()
+                            navController.navigate(item.title)
+
                         }
                     },
                     icon = {
@@ -147,9 +185,24 @@ class MainActivity : ComponentActivity() {
                 {
                     BottomNavigationBar(navController)
                 }
+            },
+            floatingActionButton = {
+                if (floatingFlag.value) {
+                    FloatingActionButton(
+                        onClick = { /* Handle Favorite action */ },
+                        containerColor = colorResource(R.color.blue_1200),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = "Favorite",
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         ) { innerPadding ->
-            SetUpNavHost(navController = navController,flag)
+            SetUpNavHost(navController = navController,flag,floatingFlag)
 
         }
     }
