@@ -1,5 +1,13 @@
 package com.example.thundora.model.pojos.api
 
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.example.thundora.model.pojos.Converters
+
+@Entity(tableName = "weather_table")
+@TypeConverters(Converters::class)
 data class Weather(
     val base: String,
     val clouds: Clouds,
@@ -8,12 +16,12 @@ data class Weather(
     val dt: Int,
     val id: Int,
     val main: Main,
-    val name: String,
+    @PrimaryKey val name: String,
     val sys: Sys,
     val timezone: Int,
     val visibility: Int,
     val weather: List<WeatherX>,
-    val wind: Wind
+    val wind: Wind,
 ){
     data class Clouds(
         val all: Int

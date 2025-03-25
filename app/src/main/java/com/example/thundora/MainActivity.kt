@@ -35,7 +35,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
@@ -67,11 +67,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
         val repository = Repository.getInstance(
             RemoteDataSource(ApiClient.weatherService),
             LocalDataSource(
-                ForecastDataBase.getInstance(applicationContext).getForecastDao(),
+                WeatherDataBase.getInstance(applicationContext).getForecastDao(),
                 SharedPreference.getInstance()
             )
         )
@@ -92,7 +91,6 @@ class MainActivity : ComponentActivity() {
             flag = remember { mutableStateOf(true) }
             floatingFlag = remember { mutableStateOf(false) }
             navController = rememberNavController()
-
             Log.i("al", "onCreate: ${locationState.value.longitude}")
 
             MainScreen(flag)
@@ -183,13 +181,15 @@ class MainActivity : ComponentActivity() {
             bottomBar = {
                 if (flag.value)
                 {
-                    BottomNavigationBar(navController)
+                        BottomNavigationBar(navController)
                 }
             },
             floatingActionButton = {
                 if (floatingFlag.value) {
                     FloatingActionButton(
-                        onClick = { /* Handle Favorite action */ },
+                        onClick = {
+                            navController.navigate(ScreensRout.Map)
+                        },
                         containerColor = colorResource(R.color.blue_1200),
                         shape = CircleShape
                     ) {

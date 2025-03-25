@@ -16,7 +16,7 @@
         android:roundIcon="@mipmap/logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Thundora"
-        android:name=".ThundoraApp"
+        android:name=".ThunderApp"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"

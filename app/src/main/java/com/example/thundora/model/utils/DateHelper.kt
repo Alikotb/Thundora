@@ -4,12 +4,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object DateTimeHelper {
-
-
     fun formatUnixTimestamp(timestamp: Long?, pattern: String = "HH:mm"): String {
         val sdf = SimpleDateFormat(pattern, Locale.getDefault())
         return sdf.format(Date(timestamp!! * 1000L))
     }
+
     fun isDayTime(sunrise: Long, sunset: Long, currentTime: Long): Boolean {
         return currentTime in sunrise..sunset
     }
@@ -32,5 +31,4 @@ object DateTimeHelper {
     fun getFormattedDate(timestamp: Long?): String {
         return formatUnixTimestamp(timestamp!!, "d MMM")
     }
-
 }

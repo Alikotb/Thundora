@@ -24,27 +24,37 @@ class MapViewModel(private val client: PlacesClient, private val repo: Repositor
     val locationFlow = _locationState.asStateFlow()
     private val _error = MutableStateFlow<String>("")
 
-
     fun getCityLocation(city: String) {
         viewModelScope.launch {
             try {
                 repo.getCoordinates(city)
                     .catch {
                         _error.emit(it.message ?: "Unknown error")
-                        Log.i("zz", "croutin catch: ${it.message})}")
 
                     }
                     .collect {
-                        Log.i("zz", "getCityLocation: ${Response.Success(it[0])}")
                         _locationState.emit(Response.Success(it[0]))
                     }
             } catch (e: Exception) {
                 _error.emit(e.message ?: "Unknown error")
-                Log.i("zz", "try catch: ${e.message}")
 
             }
         }
 
+    }
+
+    fun addFavoriteCity( lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                repo.getWeather(lat, lon, "metric", "en").catch {
+                    _error.emit(it.message ?: "Unknown error")
+                }.collect { weather ->
+                    repo.addWeather(weather)
+                }
+            } catch (e: Exception) {
+                Log.e("MapViewModel", "Error adding favorite: ${e.message}")
+            }
+        }
     }
 
     suspend fun getAddressPredictions(

@@ -4,23 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.thundora.model.pojos.ForecastDto
+import com.example.thundora.model.pojos.api.Weather
 
-@Database(entities = [ForecastDto::class], version = 1)
- abstract class ForecastDataBase : RoomDatabase(){
-
+@Database(entities = [Weather::class], version = 1)
+ abstract class WeatherDataBase : RoomDatabase(){
     abstract fun getForecastDao(): Dao
-
     companion object{
         @Volatile
-        private var instance: ForecastDataBase? = null
-        fun getInstance(context: Context): ForecastDataBase {
+        private var instance: WeatherDataBase? = null
+        fun getInstance(context: Context): WeatherDataBase {
             return instance ?: synchronized(this){
-                val INSTANCE = Room.databaseBuilder(context, ForecastDataBase::class.java, "roomdb").build()
+                val INSTANCE = Room.databaseBuilder(context, WeatherDataBase::class.java, "roomdb").build()
                 instance = INSTANCE
                 INSTANCE
             }
         }
     }
-
 }

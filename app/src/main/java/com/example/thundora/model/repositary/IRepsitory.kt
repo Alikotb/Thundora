@@ -1,6 +1,4 @@
 package com.example.thundora.model.repositary
-
-import com.example.thundora.model.pojos.ForecastDto
 import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Forecast
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
@@ -17,13 +15,10 @@ interface IRepository {
         units: String,
         language: String
     ): Flow<ApiResponse>
-    suspend fun getRoomForecast(lat: Double, lon: Double): Flow<ForecastDto>
-    suspend fun addRoomForecast(forecast: ForecastDto)
-    suspend fun deleteRoomForecast(lat: Double, lon: Double)
-    suspend fun getAllRoomForecasts(): Flow<List<ForecastDto>>
+    suspend fun addWeather(weather: Weather)
+    fun getWeather(cityName: String): Flow<Weather>
+    suspend fun deleteWeather(cityName: String)
+    fun getAllWeather(): Flow<List<Weather>>
     fun <T> saveData(key: String, value: T)
     fun <T> fetchData(key: String, defaultValue: T): T
-
-
-
 }

@@ -17,7 +17,6 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 
 object GPSLocation {
-
     @SuppressLint("MissingPermission")
      fun getLocation(locationState: MutableState<Location>, fusedLocationClient: FusedLocationProviderClient, mainLooper: Looper?) {
         val locationRequest = LocationRequest.Builder(1000).apply {
@@ -56,6 +55,4 @@ object GPSLocation {
         return locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == true ||
                 locationManager?.isProviderEnabled(LocationManager.NETWORK_PROVIDER) == true
     }
-
-
 }

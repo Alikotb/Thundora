@@ -7,7 +7,6 @@ data class Forecast(
     val list: List<Item0>,
     val message: Int
 ){
-
     data class City(
         val coord: Coord,
         val country: String,

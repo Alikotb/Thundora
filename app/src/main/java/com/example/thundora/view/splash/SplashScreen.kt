@@ -41,7 +41,6 @@ fun Splash(flag: MutableState<Boolean>, navToHome: () -> Unit) {
         navToHome()
 
     }
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier

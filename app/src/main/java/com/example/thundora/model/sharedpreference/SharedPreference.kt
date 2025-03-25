@@ -3,14 +3,13 @@ package com.example.thundora.model.sharedpreference
 import android.content.Context
 import android.content.SharedPreferences
 
+@Suppress("UNCHECKED_CAST")
 class SharedPreference(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     companion object {
-
         @Volatile
         private var INSTANCE: SharedPreference? = null
-
         fun initSharedPreferences(context: Context) {
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: SharedPreference(context.applicationContext).also {
@@ -18,7 +17,6 @@ class SharedPreference(context: Context) {
                 }
             }
         }
-
         fun getInstance() = INSTANCE!!
     }
 

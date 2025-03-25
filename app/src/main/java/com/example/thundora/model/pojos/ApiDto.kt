@@ -2,19 +2,20 @@ package com.example.thundora.model.pojos
 
 import androidx.room.Entity
 
-
 @Entity(tableName = "forecast_table", primaryKeys = ["lat", "lon"])
 data class ForecastDto(
-    val city: String,
-    val lat: Double,
-    val lon: Double,
-    val country: String,
-    val sunrise: Int,
-    val sunset: Int,
+    val name: String,
+    val icon: String,
+    val temp: Double,
+    val description: String,
+    val speed: Double,
     val humidity: Int,
     val pressure: Int,
+    val sunrise: Int,
+    val sunset: Int,
     val sea_level: Int,
-    val temp: Double,
-    val speed: Double
-
+    val country: String,
+    val lat: Double,
+    val lon: Double,
 )
+

@@ -1,8 +1,5 @@
 package com.example.thundora.view.map
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
@@ -51,7 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.BuildConfig
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
 import com.example.thundora.model.pojos.api.Response
@@ -76,18 +74,19 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 
-
 @Composable
 fun MapScreen(
+
     floatingFlag: MutableState<Boolean>,
-    navToHome: (lat: Double, lon: Double) -> Unit
+    navToHome: (lat: Double, lon: Double) -> Unit,
+    navToFavorite: () -> Unit
 ) {
     val setingViewModel: SettingViewModel = viewModel(
         factory = SettingsFactory(
             Repository.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
-                    ForecastDataBase.getInstance(
+                    WeatherDataBase.getInstance(
                         LocalContext.current
                     ).getForecastDao(),
                     SharedPreference.getInstance()
@@ -105,7 +104,7 @@ fun MapScreen(
                 Repository.getInstance(
                     RemoteDataSource(ApiClient.weatherService),
                     LocalDataSource(
-                        ForecastDataBase.getInstance(
+                        WeatherDataBase.getInstance(
                             LocalContext.current
                         ).getForecastDao(),
                         SharedPreference.getInstance()
@@ -127,28 +126,26 @@ fun MapScreen(
     when (locationState.value) {
         is Response.Error -> {
         }
-
         Response.Loading -> {
             Box(
                 Modifier
                     .fillMaxSize()
                     .wrapContentSize()
             ) {
-                androidx.compose.material3.CircularProgressIndicator()
+                CircularProgressIndicator()
             }
         }
-
         is Response.Success<GeocodingResponseItem> -> {
             val data = (locationState.value as Response.Success<GeocodingResponseItem>).data
             if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
-                setingViewModel.saveData(SharedKeys.LAT.toString(), data.lat.toString())
-                setingViewModel.saveData(SharedKeys.LON.toString(), data.lon.toString())
                 markerState.value.position = LatLng(data.lat, data.lon)
             }
             cameraPositionState.position =
                 CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
             MapBransh(
+                setingViewModel,
                 navToHome = navToHome,
+                navToFavorite = navToFavorite,
                 viewModel = viewModel,
                 (locationState.value as Response.Success).data,
                 markerState,
@@ -161,7 +158,9 @@ fun MapScreen(
 
 @Composable
 fun MapBransh(
-    navToHome: (lat: Double, lon: Double) -> Unit,
+    setingViewModel: SettingViewModel,
+    navToHome: (Double, Double) -> Unit,
+    navToFavorite: () -> Unit,
     viewModel: MapViewModel,
     locationState: GeocodingResponseItem,
     markerState: MutableState<MarkerState>,
@@ -205,7 +204,6 @@ fun MapBransh(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Spacer(Modifier.height(32.dp))
-
             OutlinedTextField(
                 value = text.value,
                 onValueChange = { query ->
@@ -264,9 +262,17 @@ fun MapBransh(
     ExpandableFAB(
         navToHome = {
             locationState.let {
+                if (it.lat != 53.3201094 && it.lon != -8.567809712252107) {
+                    setingViewModel.saveData(SharedKeys.LAT.toString(), it.lat.toString())
+                    setingViewModel.saveData(SharedKeys.LON.toString(), it.lon.toString())
+                }
                 navToHome(it.lat, it.lon)
-                Log.d("asd", "navToHome: $it.lat ${it.lon}")
-
+            }
+        },
+        navToFavorite = {
+            locationState.let {
+                viewModel.addFavoriteCity(it.lat, it.lon)
+                navToFavorite()
             }
         }
     )
@@ -274,7 +280,7 @@ fun MapBransh(
 
 
 @Composable
-fun ExpandableFAB(navToHome: () -> Unit) {
+fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
     val isExpanded = remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -291,7 +297,7 @@ fun ExpandableFAB(navToHome: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FloatingActionButton(
-                        onClick = { /* Handle Favorite action */ },
+                        onClick = { navToFavorite() },
                         containerColor = colorResource(R.color.blue_1200),
                         shape = CircleShape
                     ) {

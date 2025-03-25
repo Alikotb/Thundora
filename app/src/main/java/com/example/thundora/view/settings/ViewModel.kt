@@ -10,6 +10,4 @@ class SettingViewModel(private val repository: Repository) : ViewModel() {
     fun <T> fetchData(key: String, defaultValue: T): T {
         return repository.fetchData(key,defaultValue)
     }
-
-
 }

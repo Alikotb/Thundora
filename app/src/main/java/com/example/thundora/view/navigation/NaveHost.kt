@@ -49,13 +49,19 @@ fun SetUpNavHost(
 
         composable<ScreensRout.Settings>() { SettingScreen(floatingFlag) }
 
-        composable<ScreensRout.Map> { backStackEntry ->
-            MapScreen(floatingFlag) { selectedLat, selectedLon ->
+        composable<ScreensRout.Map> {
+            MapScreen(floatingFlag=floatingFlag, navToHome = { selectedLat, selectedLon ->
                 navController.navigate(ScreensRout.Home(selectedLat,selectedLon)) {
                     popUpTo("map") { inclusive = true }
                     launchSingleTop = true
                 }
+            }, navToFavorite = {
+                navController.navigate(ScreensRout.Favorite) {
+                    popUpTo("map") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
+            )
         }
     }
 }

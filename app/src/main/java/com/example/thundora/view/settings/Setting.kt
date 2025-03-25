@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
@@ -63,7 +63,7 @@ fun SettingScreen(floatingFlag: MutableState<Boolean>) {
             Repository.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
-                    ForecastDataBase.getInstance(LocalContext.current).getForecastDao(),
+                    WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
                     SharedPreference.getInstance()
                 )
             )
@@ -92,7 +92,7 @@ fun LanguageSelectionChips(view: SettingViewModel) {
     var selectedOption by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        selectedOption = view.fetchData(SharedKeys.LANGUAGE.toString(), defaultLanguage) ?: defaultLanguage
+        selectedOption = view.fetchData(SharedKeys.LANGUAGE.toString(), defaultLanguage)
     }
 
     Card(

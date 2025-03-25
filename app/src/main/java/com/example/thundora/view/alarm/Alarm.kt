@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AlarmScreen(floatingFlag: MutableState<Boolean>) {

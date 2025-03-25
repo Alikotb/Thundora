@@ -34,16 +34,18 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thundora.model.localdatasource.ForecastDataBase
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Response
@@ -62,6 +64,7 @@ import com.example.thundora.view.home.viewmodel.HomeViewModel
 import com.example.thundora.view.settings.SettingViewModel
 import com.example.thundora.view.settings.SettingsFactory
 import com.example.thundora.view.utilies.getBackgroundColor
+import com.example.thundora.view.utilies.getIcon
 import com.example.thundora.view.utilies.getWeatherColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +80,7 @@ fun HomeScreen(
             Repository.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
-                    ForecastDataBase.getInstance(
+                    WeatherDataBase.getInstance(
                         LocalContext.current
                     ).getForecastDao(),
                     SharedPreference.getInstance()
@@ -91,7 +94,6 @@ fun HomeScreen(
         language = "en"
     else if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "العربية")
         language = "ar"
-
     val tempKey = setingViewModel.fetchData(SharedKeys.DEGREE.toString(), "celsius")
 
     val temp = when (tempKey) {
@@ -109,7 +111,7 @@ fun HomeScreen(
                 Repository.getInstance(
                     RemoteDataSource(ApiClient.weatherService),
                     LocalDataSource(
-                        ForecastDataBase.getInstance(LocalContext.current).getForecastDao(),
+                        WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
                         SharedPreference.getInstance()
                     )
                 )
@@ -196,9 +198,7 @@ fun Home(
     val todayForecastList =
         apiForecast.forecast.list.filter { DateTimeHelper.isToday(it.dt.toLong()) }
     val iconCode = apiForecast.weather.weather.firstOrNull()?.icon ?: "01d"
-
     val (backgroundColor, textColor) = getWeatherColors(iconCode)
-
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -247,7 +247,6 @@ fun WeatherCard(
     navToMaps: () -> Unit
 ) {
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
-    val iconUrl = "https://openweathermap.org/img/wn/$iconCode.png"
     val (backgroundColor, textColor) = getWeatherColors(iconCode)
 
     Card(
@@ -306,8 +305,8 @@ fun WeatherCard(
                 }
             }
             Spacer(Modifier.height(8.dp))
-            GlideImage(
-                model = iconUrl,
+            Image(
+                painter = painterResource(getIcon (icon=iconCode)),
                 contentDescription = stringResource(R.string.weather_icon),
                 modifier = Modifier.size(120.dp)
             )
@@ -462,7 +461,6 @@ fun WeatherForecast(forecastList: List<Forecast.Item0>, temperatureUnit: String,
         }
     }
 }
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable

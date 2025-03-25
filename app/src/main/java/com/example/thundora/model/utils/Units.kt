@@ -23,3 +23,13 @@ fun getWindSpeed(language: String, degree: String): String {
         else -> ""
     }
 }
+
+fun transferUnit(tempUnit: String, tempDegree: Double): Double {
+    return when (tempUnit) {
+        "C","س" -> tempDegree
+        "F" , "ف" -> (tempDegree * 9 / 5) + 32
+        "K" ,"ك" -> tempDegree + 273.15
+        else -> tempDegree
+    }
+}
+

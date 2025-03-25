@@ -1,22 +1,21 @@
 package com.example.thundora.model.localdatasource
 
-import com.example.thundora.model.pojos.ForecastDto
+import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.sharedpreference.SharedPreference
 import kotlinx.coroutines.flow.Flow
 
 class LocalDataSource(private val dao: Dao, private val sharedPreference: SharedPreference) {
-
-     fun addForecast(forecast: ForecastDto) {
-        dao.insert(forecast)
+    suspend fun insertWeather(weather: Weather) {
+        dao.insertWeather(weather)
     }
-     fun getForecast(lat: Double, lon: Double): Flow<ForecastDto> {
-        return dao.getForecast(lat, lon)
+    fun getWeather(cityName: String): Flow<Weather> {
+        return dao.getWeather(cityName)
     }
-     fun deleteForecast(lat: Double, lon: Double) {
-        dao.deleteForecast(lat, lon)
+    suspend fun deleteWeather(cityName: String) {
+        dao.deleteWeather(cityName)
     }
-     fun getAllForecasts(): Flow<List<ForecastDto>> {
-        return dao.getAllForecasts()
+    fun getAllWeather(): Flow<List<Weather>> {
+        return dao.getAllWeather()
     }
     fun <T> saveData(key: String, value: T) {
         sharedPreference.saveData(key, value)

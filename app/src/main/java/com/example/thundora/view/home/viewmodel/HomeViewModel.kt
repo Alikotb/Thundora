@@ -1,5 +1,4 @@
 package com.example.thundora.view.home.viewmodel
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.ApiResponse
@@ -9,13 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-
 class HomeViewModel(private val repo: Repository) : ViewModel() {
     private val _forecast = MutableStateFlow<Response<ApiResponse>>(Response.Loading)
     val forecast = _forecast.asStateFlow()
     private val _messageState = MutableStateFlow<String>("")
     val message = _messageState.asStateFlow()
-
 
     fun getForecast(lat: Double, lon: Double, units: String,language:String) {
         viewModelScope.launch {
@@ -30,8 +27,6 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
             } catch (e: Exception) {
                 _messageState.emit(e.message ?: "Unknown error")
             }
-
         }
-
     }
 }
