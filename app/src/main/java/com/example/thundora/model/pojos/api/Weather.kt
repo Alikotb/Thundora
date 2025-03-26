@@ -5,7 +5,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.example.thundora.model.pojos.Converters
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(tableName = "weather_table")
 @TypeConverters(Converters::class)
 data class Weather(
@@ -16,22 +18,25 @@ data class Weather(
     val dt: Int,
     val id: Int,
     val main: Main,
-    @PrimaryKey val name: String,
+    @PrimaryKey var name: String,
     val sys: Sys,
     val timezone: Int,
     val visibility: Int,
     val weather: List<WeatherX>,
     val wind: Wind,
 ){
+    @Serializable
     data class Clouds(
         val all: Int
     )
 
+    @Serializable
     data class Coord(
         val lat: Double,
         val lon: Double
     )
 
+    @Serializable
     data class Main(
         val feels_like: Double,
         val grnd_level: Int,
@@ -43,6 +48,7 @@ data class Weather(
         val temp_min: Double
     )
 
+    @Serializable
     data class Sys(
         val country: String,
         val id: Int,
@@ -51,6 +57,7 @@ data class Weather(
         val type: Int
     )
 
+    @Serializable
     data class WeatherX(
         val description: String,
         val icon: String,
@@ -58,6 +65,7 @@ data class Weather(
         val main: String
     )
 
+    @Serializable
     data class Wind(
         val deg: Int,
         val gust: Double,

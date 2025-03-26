@@ -82,7 +82,7 @@ import kotlinx.coroutines.delay
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FavoriteScreen(floatingFlag: MutableState<Boolean>) {
+fun FavoriteScreen(floatingFlag: MutableState<Boolean>, navToDetails:(city: String,lang: Double,lat: Double)-> Unit) {
     floatingFlag.value = true
     val viewModel: FavoriteViewModel = viewModel(
         factory = FavoriteFactory(
@@ -138,12 +138,17 @@ fun FavoriteScreen(floatingFlag: MutableState<Boolean>) {
             Text(text = "Loading")
         }
         is Response.Success -> {
+            if ((favoriteCities as Response.Success).data.isEmpty())
+                Text(text = "No Favorite Cities")
+            else{
             FavoritePage(
                 (favoriteCities as Response.Success).data,
                 language,
                 temperatureUnit,
-                viewModel
+                viewModel,
+                navToDetails
             )
+        }
         }
     }
 }
@@ -154,7 +159,9 @@ fun FavoritePage(
     initialData: List<Weather>,
     language: String,
     temperatureUnit: String,
-    viewModel: FavoriteViewModel
+    viewModel: FavoriteViewModel,
+    navToDetails:(city: String,lang: Double,lat: Double)-> Unit
+
 ) {
     val favoriteList = initialData.toMutableList()
     val `snack-barHostState` = remember { SnackbarHostState() }
@@ -193,7 +200,7 @@ fun FavoritePage(
             }
             items(
                 items = favoriteList,
-                key = { item -> item.id }
+                key = { item -> item.name }
             ) { fav ->
                 SwipeToDeleteContainer(
                     item = fav,
@@ -202,7 +209,8 @@ fun FavoritePage(
                     },
                     onRestore = { viewModel.addFavoriteCity(fav) },
                     snackBarHostState = `snack-barHostState`
-                ) { weatherItem -> FavoriteCard(weatherItem, language, temperatureUnit) }
+                ) {
+                    weatherItem -> FavoriteCard(weatherItem, language, temperatureUnit,navToDetails) }
             }
 
             item {
@@ -214,11 +222,15 @@ fun FavoritePage(
 
 
 @Composable
-fun FavoriteCard(item: Weather, language: String, temperatureUnit: String) {
+fun FavoriteCard(item: Weather, language: String, temperatureUnit: String, navTodestails: (String,Double, Double) -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(8.dp)
+            .clickable{
+                navTodestails(item.name,item.coord.lat,item.coord.lon)
+            }
+        ,
 
         ) {
         Row(
@@ -237,7 +249,7 @@ fun FavoriteCard(item: Weather, language: String, temperatureUnit: String) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "${item.name}\n" +
+                    text = "${item.name}\n"+
                             (CountryHelper.getCountryName(item.sys.country.toString())),
                     color = Color.White,
                     fontSize = 18.sp,

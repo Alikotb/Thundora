@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
     lateinit var navController: NavHostController
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationState: MutableState<Location>
-    lateinit var flag :MutableState<Boolean>
+    lateinit var flag: MutableState<Boolean>
     lateinit var floatingFlag: MutableState<Boolean>
     val gpsLocation = GPSLocation
 
@@ -74,9 +74,13 @@ class MainActivity : ComponentActivity() {
                 SharedPreference.getInstance()
             )
         )
-        val settingViewModel: SettingViewModel = ViewModelProvider(this, SettingsFactory(repository))[SettingViewModel::class.java]
+        val settingViewModel: SettingViewModel =
+            ViewModelProvider(this, SettingsFactory(repository))[SettingViewModel::class.java]
         applyLanguage(
-            when ( settingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), Locale.getDefault().language)) {
+            when (settingViewModel.fetchData(
+                SharedKeys.LANGUAGE.toString(),
+                Locale.getDefault().language
+            )) {
                 "english", "الإنجليزية", "en" -> "en"
                 "arabic", "العربية", "ar" -> "ar"
                 else -> "en"
@@ -121,7 +125,7 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
         if (requestCode == LOCATION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                gpsLocation.getLocation(locationState,fusedLocationClient, Looper.getMainLooper())
+                gpsLocation.getLocation(locationState, fusedLocationClient, Looper.getMainLooper())
         }
     }
 
@@ -129,10 +133,30 @@ class MainActivity : ComponentActivity() {
     fun BottomNavigationBar(navController: NavController) {
         val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
         val navigationItems = listOf(
-            BottomNAvigationBar(ScreensRout.Home(0.0,0.0),"Home", Icons.Filled.Home, Icons.Outlined.Home),
-            BottomNAvigationBar(ScreensRout.Alarm,"Alarm", Icons.Filled.Notifications, Icons.Outlined.Notifications),
-            BottomNAvigationBar(ScreensRout.Favorite, "Favorite",Icons.Filled.Favorite, Icons.Outlined.Favorite),
-            BottomNAvigationBar(ScreensRout.Settings,"Setting", Icons.Filled.Settings, Icons.Outlined.Settings)
+            BottomNAvigationBar(
+                ScreensRout.Home(0.0, 0.0),
+                "Home",
+                Icons.Filled.Home,
+                Icons.Outlined.Home
+            ),
+            BottomNAvigationBar(
+                ScreensRout.Alarm,
+                "Alarm",
+                Icons.Filled.Notifications,
+                Icons.Outlined.Notifications
+            ),
+            BottomNAvigationBar(
+                ScreensRout.Favorite,
+                "Favorite",
+                Icons.Filled.Favorite,
+                Icons.Outlined.Favorite
+            ),
+            BottomNAvigationBar(
+                ScreensRout.Settings,
+                "Setting",
+                Icons.Filled.Settings,
+                Icons.Outlined.Settings
+            )
 
         )
 
@@ -179,9 +203,8 @@ class MainActivity : ComponentActivity() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-                if (flag.value)
-                {
-                        BottomNavigationBar(navController)
+                if (flag.value) {
+                    BottomNavigationBar(navController)
                 }
             },
             floatingActionButton = {
@@ -202,7 +225,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         ) { innerPadding ->
-            SetUpNavHost(navController = navController,flag,floatingFlag)
+            SetUpNavHost(navController = navController, flag, floatingFlag)
 
         }
     }
@@ -223,12 +246,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun gpsLocation(){
+    fun gpsLocation() {
         if (gpsLocation.checkPermission(this)) {
             if (!gpsLocation.isLocationEnabled(this)) {
                 gpsLocation.enableLocationService(this)
             } else {
-                gpsLocation.getLocation(locationState = locationState,fusedLocationClient, Looper.getMainLooper())
+                gpsLocation.getLocation(
+                    locationState = locationState,
+                    fusedLocationClient,
+                    Looper.getMainLooper()
+                )
             }
         } else {
             ActivityCompat.requestPermissions(

@@ -15,5 +15,7 @@ sealed class ScreensRout {
     object Settings : ScreensRout()
     @Serializable
     object Map: ScreensRout()
+    @Serializable
+    data class Details(val city: String,val lang: Double, val lat:Double): ScreensRout()
 
 }

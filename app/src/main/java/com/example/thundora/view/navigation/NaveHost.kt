@@ -14,7 +14,9 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.navigation.NavHostController
+import androidx.navigation.toRoute
 import com.example.thundora.model.pojos.view.ScreensRout
+import com.example.thundora.view.favorite.DetailsScreen
 
 @SuppressLint("ComposableDestinationInComposeScope")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -44,11 +46,12 @@ fun SetUpNavHost(
 
         composable<ScreensRout.Favorite>() {
 
-            FavoriteScreen(floatingFlag)
+            FavoriteScreen(floatingFlag){
+                city,lang,lat->
+                navController.navigate(ScreensRout.Details(city,lang,lat))
+            }
         }
-
         composable<ScreensRout.Settings>() { SettingScreen(floatingFlag) }
-
         composable<ScreensRout.Map> {
             MapScreen(floatingFlag=floatingFlag, navToHome = { selectedLat, selectedLon ->
                 navController.navigate(ScreensRout.Home(selectedLat,selectedLon)) {
@@ -62,6 +65,12 @@ fun SetUpNavHost(
                 }
             }
             )
+        }
+        composable<ScreensRout.Details> {
+            val Lat= it.toRoute<ScreensRout.Details>().lat
+            val lon =it.toRoute<ScreensRout.Details>().lang
+            val city=it.toRoute<ScreensRout.Details>().city
+            DetailsScreen(floatingFlag,city,Lat,lon)
         }
     }
 }

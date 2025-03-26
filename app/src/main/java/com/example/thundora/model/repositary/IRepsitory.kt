@@ -19,6 +19,7 @@ interface IRepository {
     fun getWeather(cityName: String): Flow<Weather>
     suspend fun deleteWeather(cityName: String)
     fun getAllWeather(): Flow<List<Weather>>
+    suspend fun updateWeather(weather: Weather)
     fun <T> saveData(key: String, value: T)
     fun <T> fetchData(key: String, defaultValue: T): T
 }

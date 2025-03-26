@@ -1,8 +1,6 @@
 package com.example.thundora.model.utils
 
-import com.example.thundora.model.pojos.ForecastDto
 import com.example.thundora.model.pojos.api.Forecast
-import com.example.thundora.model.pojos.api.Weather
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

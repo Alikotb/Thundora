@@ -17,6 +17,9 @@ class LocalDataSource(private val dao: Dao, private val sharedPreference: Shared
     fun getAllWeather(): Flow<List<Weather>> {
         return dao.getAllWeather()
     }
+    suspend fun updateWeather(weather: Weather){
+        dao.updatesWeathe(weather)
+    }
     fun <T> saveData(key: String, value: T) {
         sharedPreference.saveData(key, value)
     }

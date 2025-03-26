@@ -57,6 +57,10 @@ class Repository private constructor(private val remote: RemoteDataSource,privat
         return local.getAllWeather()
     }
 
+    override suspend fun updateWeather(weather: Weather) {
+        local.updateWeather(weather)
+    }
+
 
     override fun <T> saveData(key: String, value: T) {
         local.saveData(key, value)

@@ -1,5 +1,6 @@
 package com.example.thundora.view.favorite.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.Response
@@ -19,21 +20,27 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
     val favoriteCity = _favoriteCity.asStateFlow()
 
     fun getFavoriteCities() {
-        viewModelScope.launch {
-            repository.getAllWeather()
-                .catch { e ->
-                    _favoriteCities.value = Response.Error(e.localizedMessage ?: "Error fetching favorites")
-                }
-                .map {
-                    it.sortedBy {
-                        it.name
+        try {
+            viewModelScope.launch {
+                repository.getAllWeather()
+                    .catch { e ->
+                        _favoriteCities.value =
+                            Response.Error(e.localizedMessage ?: "Error fetching favorites")
                     }
-                }
-                .collect { weatherList ->
-                    _favoriteCities.emit(Response.Success(weatherList))
-                }
+                    .map {
+                        it.sortedBy {
+                            it.name
+                        }
+                    }
+                    .collect { weatherList ->
+                        _favoriteCities.emit(Response.Success(weatherList))
+                    }
+            }
+        }catch (e: Exception){
+            Log.d("TAG", "getFavoriteCities: ${e.message}")
         }
     }
+
     fun deleteFavoriteCity(city: String) {
         viewModelScope.launch {
             try {
@@ -43,13 +50,52 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
             }
         }
     }
+
     fun addFavoriteCity(city: Weather) {
         viewModelScope.launch {
             try {
                 repository.addWeather(city)
             } catch (e: Exception) {
                 _favoriteCity.emit(Response.Error(e.localizedMessage ?: "Error adding favorite"))
-                }
+            }
+        }
+    }
+
+    fun getFavoriteCityApi(city:String ,lat: Double, lon: Double) {
+        Log.d("TAG", "latAndlon: $lat ${lon}")
+
+        try {
+            viewModelScope.launch {
+                repository.getWeather(lat, lon, "metric", "ar")
+                    .catch { e ->
+                        _favoriteCity.value =
+                            Response.Error(e.localizedMessage ?: "Error fetching favorite")
+                    }
+                    .collect { weather ->
+                        _favoriteCity.emit(Response.Success(weather))
+                        weather.name = city
+                        repository.updateWeather(weather)
+                        Log.d("TAG", "update: ${weather.dt } ${weather.id}")
+
+                    }
+            }
+        } catch (e: Exception) {
+            _favoriteCity.value = Response.Error(e.localizedMessage ?: "Error fetching favorite")
+        }
+    }
+    fun getFavoriteCityRomm(city: String){
+        try {
+            viewModelScope.launch {
+                repository.getWeather(city)
+                    .catch { e ->
+                        _favoriteCity.value =
+                            Response.Error(e.localizedMessage ?: "Error fetching favorite")
+                    }.collect { weather ->
+                        _favoriteCity.emit(Response.Success(weather))
+                    }
+            }
+        } catch (e: Exception) {
+            _favoriteCity.value = Response.Error(e.localizedMessage ?: "Error fetching favorite")
         }
     }
 }
