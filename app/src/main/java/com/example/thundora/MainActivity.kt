@@ -31,24 +31,16 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
 import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.navigation.SetUpNavHost
-import com.example.thundora.view.settings.SettingViewModel
-import com.example.thundora.view.settings.SettingsFactory
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.util.Locale
@@ -67,25 +59,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        val repository = Repository.getInstance(
-            RemoteDataSource(ApiClient.weatherService),
-            LocalDataSource(
-                WeatherDataBase.getInstance(applicationContext).getForecastDao(),
-                SharedPreference.getInstance()
-            )
-        )
-        val settingViewModel: SettingViewModel =
-            ViewModelProvider(this, SettingsFactory(repository))[SettingViewModel::class.java]
-        applyLanguage(
-            when (settingViewModel.fetchData(
-                SharedKeys.LANGUAGE.toString(),
-                Locale.getDefault().language
-            )) {
-                "english", "الإنجليزية", "en" -> "en"
-                "arabic", "العربية", "ar" -> "ar"
-                else -> "en"
-            }
-        )
+        val lang=SharedPreference.getInstance().fetchData(SharedKeys.LANGUAGE.toString(),
+            Locale.getDefault().language)
+        applyLanguage(lang)
 
         enableEdgeToEdge()
         setLightStatusBar(true)

@@ -1,12 +1,12 @@
 package com.example.thundora.view.favorite.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.repositary.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -18,6 +18,11 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
 
     private val _favoriteCity = MutableStateFlow<Response<Weather>>(Response.Loading)
     val favoriteCity = _favoriteCity.asStateFlow()
+
+    private val _language = MutableStateFlow("")
+    val language: StateFlow<String> = _language
+    private val _temperatureUnit = MutableStateFlow("")
+    val temperatureUnit: StateFlow<String> =  _temperatureUnit.asStateFlow()
 
     fun getFavoriteCities() {
         try {
@@ -37,7 +42,6 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
                     }
             }
         }catch (e: Exception){
-            Log.d("TAG", "getFavoriteCities: ${e.message}")
         }
     }
 
@@ -62,7 +66,6 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun getFavoriteCityApi(city:String ,lat: Double, lon: Double) {
-        Log.d("TAG", "latAndlon: $lat ${lon}")
 
         try {
             viewModelScope.launch {
@@ -75,7 +78,6 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
                         _favoriteCity.emit(Response.Success(weather))
                         weather.name = city
                         repository.updateWeather(weather)
-                        Log.d("TAG", "update: ${weather.dt } ${weather.id}")
 
                     }
             }

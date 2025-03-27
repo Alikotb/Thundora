@@ -24,9 +24,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -69,20 +73,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.api.Weather
-import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.utils.CountryHelper
 import com.example.thundora.model.utils.DateTimeHelper
 import com.example.thundora.model.utils.formatNumberBasedOnLanguage
 import com.example.thundora.model.utils.getDegree
+import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.model.utils.transferUnit
-import com.example.thundora.view.settings.SettingViewModel
-import com.example.thundora.view.settings.SettingsFactory
+import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getIcon
 import kotlinx.coroutines.delay
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FavoriteScreen(floatingFlag: MutableState<Boolean>, navToDetails:(city: String,lang: Double,lat: Double)-> Unit) {
+fun FavoriteScreen(
+    floatingFlag: MutableState<Boolean>,
+    navToDetails: (city: String, lang: Double, lat: Double) -> Unit
+) {
     floatingFlag.value = true
     val viewModel: FavoriteViewModel = viewModel(
         factory = FavoriteFactory(
@@ -98,35 +104,10 @@ fun FavoriteScreen(floatingFlag: MutableState<Boolean>, navToDetails:(city: Stri
             )
         )
     )
-    val setingViewModel: SettingViewModel = viewModel(
-        factory = SettingsFactory(
-            Repository.getInstance(
-                RemoteDataSource(ApiClient.weatherService),
-                LocalDataSource(
-                    WeatherDataBase.getInstance(
-                        LocalContext.current
-                    ).getForecastDao(),
-                    SharedPreference.getInstance()
-                )
-            )
-        )
-    )
 
-    var language = "en"
-    if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "English")
-        language = "en"
-    else if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "العربية")
-        language = "ar"
-    val tempKey = setingViewModel.fetchData(SharedKeys.DEGREE.toString(), "celsius")
-
-    val temp = when (tempKey) {
-        "celsius" -> "metric"
-        "fahrenheit" -> "imperial"
-        "kelvin" -> "standard"
-        else -> "metric"
-    }
-
-    val temperatureUnit = getDegree(language, temp)
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val temp by viewModel.temperatureUnit.collectAsStateWithLifecycle()
+    val temperatureUnit = getDegree(getLanguage(language), temp)
     val favoriteCities by viewModel.favoriteCities.collectAsStateWithLifecycle()
     viewModel.getFavoriteCities()
     when (favoriteCities) {
@@ -135,20 +116,19 @@ fun FavoriteScreen(floatingFlag: MutableState<Boolean>, navToDetails:(city: Stri
         }
 
         Response.Loading -> {
-            Text(text = "Loading")
+            LoadingScreen()
         }
         is Response.Success -> {
             if ((favoriteCities as Response.Success).data.isEmpty())
                 Text(text = "No Favorite Cities")
-            else{
-            FavoritePage(
-                (favoriteCities as Response.Success).data,
-                language,
-                temperatureUnit,
-                viewModel,
-                navToDetails
-            )
-        }
+            else {
+                FavoritePage(
+                    (favoriteCities as Response.Success).data,
+                    temperatureUnit,
+                    viewModel,
+                    navToDetails,
+                )
+            }
         }
     }
 }
@@ -157,10 +137,9 @@ fun FavoriteScreen(floatingFlag: MutableState<Boolean>, navToDetails:(city: Stri
 @Composable
 fun FavoritePage(
     initialData: List<Weather>,
-    language: String,
     temperatureUnit: String,
     viewModel: FavoriteViewModel,
-    navToDetails:(city: String,lang: Double,lat: Double)-> Unit
+    navToDetails: (city: String, lang: Double, lat: Double) -> Unit
 
 ) {
     val favoriteList = initialData.toMutableList()
@@ -209,8 +188,7 @@ fun FavoritePage(
                     },
                     onRestore = { viewModel.addFavoriteCity(fav) },
                     snackBarHostState = `snack-barHostState`
-                ) {
-                    weatherItem -> FavoriteCard(weatherItem, language, temperatureUnit,navToDetails) }
+                ) { weatherItem -> FavoriteCard(weatherItem, temperatureUnit, navToDetails) }
             }
 
             item {
@@ -222,15 +200,19 @@ fun FavoritePage(
 
 
 @Composable
-fun FavoriteCard(item: Weather, language: String, temperatureUnit: String, navTodestails: (String,Double, Double) -> Unit) {
+fun FavoriteCard(
+    item: Weather,
+    temperatureUnit: String,
+    navTodestails: (String, Double, Double) -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(8.dp)
-            .clickable{
-                navTodestails(item.name,item.coord.lat,item.coord.lon)
-            }
-        ,
+        modifier = Modifier
+            .padding(8.dp)
+            .clickable {
+                navTodestails(item.name, item.coord.lat, item.coord.lon)
+            },
 
         ) {
         Row(
@@ -249,7 +231,7 @@ fun FavoriteCard(item: Weather, language: String, temperatureUnit: String, navTo
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "${item.name}\n"+
+                    text = "${item.name}\n" +
                             (CountryHelper.getCountryName(item.sys.country.toString())),
                     color = Color.White,
                     fontSize = 18.sp,
@@ -263,11 +245,11 @@ fun FavoriteCard(item: Weather, language: String, temperatureUnit: String, navTo
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = formatNumberBasedOnLanguage(
-                        DateTimeHelper.formatUnixTimestamp(item.dt.toLong()), language
+                        DateTimeHelper.formatUnixTimestamp(item.dt.toLong())
                     ) + " ," + formatNumberBasedOnLanguage(
                         DateTimeHelper.getFormattedDate(
                             item.dt.toLong()
-                        ), language
+                        )
                     ),
                     color = Color.LightGray,
                     fontSize = 14.sp,
@@ -277,8 +259,7 @@ fun FavoriteCard(item: Weather, language: String, temperatureUnit: String, navTo
                 text = "${
                     transferUnit(temperatureUnit, item.main.temp).let {
                         formatNumberBasedOnLanguage(
-                            it.toInt().toString(),
-                            language
+                            it.toInt().toString()
                         )
                     }
                 } ° $temperatureUnit",

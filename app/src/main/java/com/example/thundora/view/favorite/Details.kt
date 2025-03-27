@@ -40,7 +40,6 @@ import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.api.Weather
-import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
@@ -49,18 +48,16 @@ import com.example.thundora.model.utils.CountryHelper
 import com.example.thundora.model.utils.DateTimeHelper
 import com.example.thundora.model.utils.formatNumberBasedOnLanguage
 import com.example.thundora.model.utils.getDegree
+import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.model.utils.getWindSpeed
 import com.example.thundora.view.favorite.viewModel.FavoriteFactory
 import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
 import com.example.thundora.view.home.WeatherInfo
-import com.example.thundora.view.settings.SettingViewModel
-import com.example.thundora.view.settings.SettingsFactory
 import com.example.thundora.view.utilies.getIcon
 import com.example.thundora.view.utilies.isInternetAvailable
 
-
 @Composable
-fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double, lon: Double){
+fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double, lon: Double) {
     floatingFlag.value = false
     val viewModel: FavoriteViewModel = viewModel(
         factory = FavoriteFactory(
@@ -76,40 +73,16 @@ fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double
             )
         )
     )
-    val setingViewModel: SettingViewModel = viewModel(
-        factory = SettingsFactory(
-            Repository.getInstance(
-                RemoteDataSource(ApiClient.weatherService),
-                LocalDataSource(
-                    WeatherDataBase.getInstance(
-                        LocalContext.current
-                    ).getForecastDao(),
-                    SharedPreference.getInstance()
-                )
-            )
-        )
-    )
 
-    var language = "en"
-    if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "English")
-        language = "en"
-    else if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "العربية")
-        language = "ar"
-    val tempKey = setingViewModel.fetchData(SharedKeys.DEGREE.toString(), "celsius")
 
-    val temp = when (tempKey) {
-        "celsius" -> "metric"
-        "fahrenheit" -> "imperial"
-        "kelvin" -> "standard"
-        else -> "metric"
-    }
-
-    val temperatureUnit = getDegree(language, temp)
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val temp by viewModel.temperatureUnit.collectAsStateWithLifecycle()
+    val temperatureUnit = getDegree(getLanguage(language), temp)
     val favoriteCities by viewModel.favoriteCity.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        if(isInternetAvailable()){
-            viewModel.getFavoriteCityApi(city,lat,lon)
-        }else{
+        if (isInternetAvailable()) {
+            viewModel.getFavoriteCityApi(city, lat, lon)
+        } else {
             viewModel.getFavoriteCityRomm(city)
         }
 
@@ -119,16 +92,21 @@ fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double
         is Response.Error -> {
             Text(text = (favoriteCities as Response.Error).message)
         }
+
         Response.Loading -> {
             Box {
                 CircularProgressIndicator()
             }
         }
+
         is Response.Success -> {
-            WeatherCardDetails(weatherState = (favoriteCities as Response.Success<Weather>).data,temperatureUnit,speedUnit,language)
+            WeatherCardDetails(
+                weatherState = (favoriteCities as Response.Success<Weather>).data,
+                temperatureUnit,
+                speedUnit
+            )
         }
     }
-
 }
 
 @Composable
@@ -136,19 +114,19 @@ fun WeatherCardDetails(
     weatherState: Weather,
     temperatureUnit: String,
     speedUnit: String,
-    language: String
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.deep_blue))
-        ,
+            .background(colorResource(R.color.deep_blue)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.blue_accent)),
             shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 64.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 64.dp)
         ) {
             Spacer(Modifier.height(16.dp))
             Column(
@@ -162,8 +140,8 @@ fun WeatherCardDetails(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "${weatherState.name}\n"+
-                               (CountryHelper.getCountryName(weatherState.sys.country.toString())),
+                        text = "${weatherState.name}\n" +
+                                (CountryHelper.getCountryName(weatherState.sys.country.toString())),
                         color = Color.White,
                         fontSize = 18.sp,
                         textAlign = TextAlign.Start,
@@ -174,7 +152,6 @@ fun WeatherCardDetails(
                         Text(
                             text = formatNumberBasedOnLanguage(
                                 DateTimeHelper.getDayOfWeek(weatherState.dt.toLong()),
-                                language
                             ),
                             color = Color.White,
                             fontSize = 18.sp,
@@ -183,10 +160,10 @@ fun WeatherCardDetails(
                         )
 
                         Text(
-                            text =  formatNumberBasedOnLanguage(
+                            text = formatNumberBasedOnLanguage(
                                 DateTimeHelper.getFormattedDate(
                                     weatherState.dt.toLong()
-                                ), language
+                                )
                             ),
                             color = Color.White,
                             fontSize = 16.sp,
@@ -208,9 +185,8 @@ fun WeatherCardDetails(
                         weatherState.main.temp.let {
                             formatNumberBasedOnLanguage(
                                 it.toString(),
-                                language
                             )
-                        } 
+                        }
                     } ° $temperatureUnit",
                     fontSize = 35.sp,
                     color = Color.White
@@ -219,7 +195,8 @@ fun WeatherCardDetails(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = weatherState.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }.toString(),
+                    text = weatherState.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() }
+                        .toString(),
                     fontSize = 20.sp,
                     color = Color.White
                 )
@@ -228,8 +205,7 @@ fun WeatherCardDetails(
         }
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-            ,
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
 
             ) {
@@ -240,7 +216,7 @@ fun WeatherCardDetails(
                     .padding(16.dp)
                     .weight(.45f),
 
-            ) {
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -251,7 +227,6 @@ fun WeatherCardDetails(
                         value = weatherState.wind.speed.let {
                             formatNumberBasedOnLanguage(
                                 it.toString(),
-                                language
                             )
                         },
                         unit = " $speedUnit",
@@ -263,8 +238,7 @@ fun WeatherCardDetails(
                     Spacer(Modifier.height(8.dp))
                     WeatherInfo(
                         value = formatNumberBasedOnLanguage(
-                            weatherState?.main?.pressure.toString(),
-                            language
+                            weatherState.main.pressure.toString(),
                         ),
                         unit = " hPa",
                         icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
@@ -294,9 +268,8 @@ fun WeatherCardDetails(
                         value = weatherState.main.sea_level.let {
                             formatNumberBasedOnLanguage(
                                 it.toString(),
-                                language
                             )
-                        }.toString() ,
+                        }.toString(),
                         unit = "",
                         icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
                         iconTint = Color.White,
@@ -324,17 +297,16 @@ fun WeatherCardDetails(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
-                    .padding(horizontal = 64.dp)
-                ,
+                    .padding(horizontal = 64.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
 
-            ) {
+                ) {
                 WeatherInfo(
                     value = formatNumberBasedOnLanguage(
                         DateTimeHelper.formatUnixTimestamp(
                             weatherState.sys.sunrise.toLong(),
                             "hh:mm a"
-                        ), language
+                        )
                     ),
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
@@ -347,7 +319,7 @@ fun WeatherCardDetails(
                         DateTimeHelper.formatUnixTimestamp(
                             weatherState.sys.sunset.toLong(),
                             "hh:mm a"
-                        ), language
+                        )
                     ),
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),

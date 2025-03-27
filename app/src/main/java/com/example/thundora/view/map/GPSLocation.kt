@@ -18,7 +18,11 @@ import com.google.android.gms.location.Priority
 
 object GPSLocation {
     @SuppressLint("MissingPermission")
-     fun getLocation(locationState: MutableState<Location>, fusedLocationClient: FusedLocationProviderClient, mainLooper: Looper?) {
+    fun getLocation(
+        locationState: MutableState<Location>,
+        fusedLocationClient: FusedLocationProviderClient,
+        mainLooper: Looper?
+    ) {
         val locationRequest = LocationRequest.Builder(1000).apply {
             setPriority(Priority.PRIORITY_HIGH_ACCURACY)
         }.build()
@@ -35,7 +39,7 @@ object GPSLocation {
         )
     }
 
-     fun checkPermission(context: Context): Boolean {
+    fun checkPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
             android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -45,12 +49,13 @@ object GPSLocation {
                     android.Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
     }
-     fun enableLocationService(context: Context) {
+
+    fun enableLocationService(context: Context) {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         context.startActivity(intent)
     }
 
-     fun isLocationEnabled(context: Context): Boolean {
+    fun isLocationEnabled(context: Context): Boolean {
         val locationManager = ContextCompat.getSystemService(context, LocationManager::class.java)
         return locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == true ||
                 locationManager?.isProviderEnabled(LocationManager.NETWORK_PROVIDER) == true

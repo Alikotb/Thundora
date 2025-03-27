@@ -15,7 +15,7 @@ class ThunderApp : Application() {
         instance = this
 
         if (!Places.isInitialized()) {
-            Places.initialize(this, BuildConfig.WEATHER_API_KEY)
+            Places.initialize(this, BuildConfig.googleApiKey)
         }
 
         SharedPreference.initSharedPreferences(this)

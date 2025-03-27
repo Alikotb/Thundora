@@ -24,7 +24,7 @@ import com.example.thundora.view.favorite.DetailsScreen
 fun SetUpNavHost(
     navController: NavHostController,
     flag: MutableState<Boolean>,
-    floatingFlag: MutableState<Boolean>
+    floatingFlag: MutableState<Boolean>,
 ) {
     NavHost(
         navController = navController,

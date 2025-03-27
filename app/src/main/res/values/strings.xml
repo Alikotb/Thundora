@@ -16,5 +16,7 @@
     <string name="map">Map</string>
     <string name="wend_speed_unit">Wend Speed Unit</string>
     <string name="select_language">Select Language</string>
+    <string name="m_s">m/s</string>
+    <string name="mile_h">mile/h</string>
 </resources>
 

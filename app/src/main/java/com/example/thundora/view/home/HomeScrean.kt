@@ -1,6 +1,7 @@
 @file:Suppress("CAST_NEVER_SUCCEEDS")
 
 package com.example.thundora.view.home
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,11 +46,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
@@ -58,15 +58,14 @@ import com.example.thundora.model.utils.DateTimeHelper
 import com.example.thundora.model.utils.dailyForecasts
 import com.example.thundora.model.utils.formatNumberBasedOnLanguage
 import com.example.thundora.model.utils.getDegree
+import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.model.utils.getWindSpeed
 import com.example.thundora.view.home.viewmodel.HomeFactory
 import com.example.thundora.view.home.viewmodel.HomeViewModel
-import com.example.thundora.view.settings.SettingViewModel
-import com.example.thundora.view.settings.SettingsFactory
+import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getBackgroundColor
 import com.example.thundora.view.utilies.getIcon
 import com.example.thundora.view.utilies.getWeatherColors
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -75,80 +74,52 @@ fun HomeScreen(
     navToMaps: (latitude: Double, longitude: Double) -> Unit
 ) {
     floatingFlag.value = false
-    val setingViewModel: SettingViewModel = viewModel(
-        factory = SettingsFactory(
+    flag.value = true
+
+    val viewModel: HomeViewModel=viewModel(
+        factory = HomeFactory(
             Repository.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
-                    WeatherDataBase.getInstance(
-                        LocalContext.current
-                    ).getForecastDao(),
+                    WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
                     SharedPreference.getInstance()
                 )
             )
         )
     )
 
-    var language = "en"
-    if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "English")
-        language = "en"
-    else if (setingViewModel.fetchData(SharedKeys.LANGUAGE.toString(), "") == "العربية")
-        language = "ar"
-    val tempKey = setingViewModel.fetchData(SharedKeys.DEGREE.toString(), "celsius")
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val temp by viewModel.temperatureUnit.collectAsStateWithLifecycle()
+    val temperatureUnit =getDegree(getLanguage(language),temp)
+    val wind by viewModel.units.collectAsStateWithLifecycle()
+    val windSpeedUnit  =getWindSpeed(getLanguage(language),wind)
 
-    val temp = when (tempKey) {
-        "celsius" -> "metric"
-        "fahrenheit" -> "imperial"
-        "kelvin" -> "standard"
-        else -> "metric"
-    }
-
-    val temperatureUnit = getDegree(language, temp)
-    val speedUnit = getWindSpeed(language, temp)
-    val viewModel: HomeViewModel =
-        viewModel(
-            factory = HomeFactory(
-                Repository.getInstance(
-                    RemoteDataSource(ApiClient.weatherService),
-                    LocalDataSource(
-                        WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
-                        SharedPreference.getInstance()
-                    )
-                )
-            )
-        )
     val apiForecast by viewModel.forecast.collectAsStateWithLifecycle()
     val error by viewModel.message.collectAsStateWithLifecycle()
-    val x = setingViewModel.fetchData(SharedKeys.LAT.toString(), "0.0").toDouble()
-    val y = setingViewModel.fetchData(SharedKeys.LON.toString(), "0.0").toDouble()
-    flag.value = true
+
     var dataPoints: MutableList<Float> = mutableListOf()
     var hourlyData: MutableList<String> = mutableListOf()
-    LaunchedEffect(viewModel) {
-        viewModel.getForecast(x, y, temp, language)
-    }
+
+
     when (apiForecast) {
         is Response.Success -> {
+            Log.d("asd", "HomeScreen: ${windSpeedUnit}")
             dataPoints = (apiForecast as Response.Success).data.forecast.list.take(4)
                 .filter { DateTimeHelper.isToday(it.dt.toLong()) }
-                .map {
-                    it.main.temp.toFloat()
-                }.toMutableList()
+                .map { it.main.temp.toFloat() }
+                .toMutableList()
+
             hourlyData = (apiForecast as Response.Success).data.forecast.list.take(4)
                 .filter { DateTimeHelper.isToday(it.dt.toLong()) }
                 .map {
                     "${
                         formatNumberBasedOnLanguage(
-                            DateTimeHelper.formatUnixTimestamp(
-                                it.dt.toLong(),
-                                "HH:mm"
-                            ), language
+                            DateTimeHelper.formatUnixTimestamp(it.dt.toLong(), "HH:mm"),
                         )
                     }\n\n" +
                             "${
                                 formatNumberBasedOnLanguage(
                                     it.main.temp.toInt().toString(),
-                                    language
                                 )
                             } ° $temperatureUnit"
                 }.toMutableList()
@@ -160,27 +131,28 @@ fun HomeScreen(
                 dataPoints,
                 hourlyData,
                 temperatureUnit,
-                speedUnit,
-                language
+                windSpeedUnit
             )
         }
 
         is Response.Error -> {
             Text(text = (error as Response.Error).message)
+            Log.d("ali", "HomeScreen: error state")
 
         }
 
         is Response.Loading -> {
+            Log.d("ali", "HomeScreen: Loading state")
+
             Box(
                 Modifier
                     .fillMaxSize()
                     .wrapContentSize()
             ) {
-                CircularProgressIndicator()
+                LoadingScreen()
             }
         }
     }
-
 }
 
 
@@ -193,7 +165,6 @@ fun Home(
     hourlyData: MutableList<String>,
     temperatureUnit: String,
     speedUnit: String,
-    language: String
 ) {
     val todayForecastList =
         apiForecast.forecast.list.filter { DateTimeHelper.isToday(it.dt.toLong()) }
@@ -214,7 +185,6 @@ fun Home(
                 flag,
                 temperatureUnit,
                 speedUnit,
-                language
             ) { navToMaps(it.coord.lat, it.coord.lon) }
         }
         LineChartScreen(
@@ -228,9 +198,9 @@ fun Home(
             weatherCondition = apiForecast.weather.weather.firstOrNull()?.main ?: "Clear",
             textColor,
         )
-        WeatherForecast(todayForecastList, temperatureUnit, language)
+        WeatherForecast(todayForecastList, temperatureUnit)
         Spacer(Modifier.height(4.dp))
-        DayDisplay(apiForecast.forecast, temperatureUnit, language)
+        DayDisplay(apiForecast.forecast, temperatureUnit)
 
         Spacer(Modifier.height(100.dp))
     }
@@ -243,7 +213,6 @@ fun WeatherCard(
     flag: MutableState<Boolean>,
     temperatureUnit: String,
     speedUnit: String,
-    language: String,
     navToMaps: () -> Unit
 ) {
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
@@ -282,9 +251,7 @@ fun WeatherCard(
                 Column {
                     Text(
                         text = formatNumberBasedOnLanguage(
-                            DateTimeHelper.getDayOfWeek(weatherState?.dt?.toLong()),
-                            language
-                        ),
+                            DateTimeHelper.getDayOfWeek(weatherState?.dt?.toLong())),
                         color = textColor,
                         fontSize = 18.sp,
                         textAlign = TextAlign.End,
@@ -295,7 +262,7 @@ fun WeatherCard(
                         text = formatNumberBasedOnLanguage(
                             DateTimeHelper.getFormattedDate(
                                 weatherState?.dt?.toLong()
-                            ), language
+                            )
                         ),
                         color = textColor,
                         fontSize = 16.sp,
@@ -316,9 +283,7 @@ fun WeatherCard(
                 text = "${
                     weatherState?.main?.temp?.let {
                         formatNumberBasedOnLanguage(
-                            it.toString(),
-                            language
-                        )
+                            it.toString())
                     } ?: "--"
                 } ° $temperatureUnit",
                 fontSize = 35.sp,
@@ -343,9 +308,7 @@ fun WeatherCard(
                 WeatherInfo(
                     value = weatherState?.wind?.speed.let {
                         formatNumberBasedOnLanguage(
-                            it.toString(),
-                            language
-                        )
+                            it.toString())
                     },
                     unit = " $speedUnit",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
@@ -356,9 +319,7 @@ fun WeatherCard(
                 WeatherInfo(
                     value = weatherState?.main?.humidity.let {
                         formatNumberBasedOnLanguage(
-                            it.toString(),
-                            language
-                        )
+                            it.toString())
                     },
                     unit = "%",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
@@ -368,9 +329,7 @@ fun WeatherCard(
                 )
                 WeatherInfo(
                     value = formatNumberBasedOnLanguage(
-                        weatherState?.main?.pressure.toString(),
-                        language
-                    ),
+                        weatherState?.main?.pressure.toString()),
                     unit = " hPa",
                     icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
                     iconTint = textColor,
@@ -388,8 +347,7 @@ fun WeatherCard(
                         DateTimeHelper.formatUnixTimestamp(
                             weatherState?.sys?.sunrise?.toLong(),
                             "hh:mm a"
-                        ), language
-                    ),
+                        )),
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.sunrise),
                     iconTint = textColor,
@@ -401,7 +359,7 @@ fun WeatherCard(
                         DateTimeHelper.formatUnixTimestamp(
                             weatherState?.sys?.sunset?.toLong(),
                             "hh:mm a"
-                        ), language
+                        )
                     ),
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.sunsunset),
@@ -412,9 +370,7 @@ fun WeatherCard(
                 WeatherInfo(
                     value = weatherState?.main?.sea_level?.let {
                         formatNumberBasedOnLanguage(
-                            it.toString(),
-                            language
-                        )
+                            it.toString())
                     } ?: "--",
                     unit = "",
                     icon = ImageVector.vectorResource(id = R.drawable.sea),
@@ -428,7 +384,7 @@ fun WeatherCard(
 
 
 @Composable
-fun WeatherForecast(forecastList: List<Forecast.Item0>, temperatureUnit: String, language: String) {
+fun WeatherForecast(forecastList: List<Forecast.Item0>, temperatureUnit: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -451,7 +407,7 @@ fun WeatherForecast(forecastList: List<Forecast.Item0>, temperatureUnit: String,
                             DateTimeHelper.formatUnixTimestamp(
                                 item.dt.toLong(),
                                 "HH:mm"
-                            ), language
+                            )
                         ),
                         temp = "${item.main.temp.toInt()} ° $temperatureUnit",
                         icon = item.weather.firstOrNull()?.icon ?: "01n"
@@ -478,7 +434,7 @@ fun HourlyDataRow(time: String, temp: String, icon: String) {
             contentDescription = "Weather Icon",
             modifier = Modifier.size(40.dp)
         )
-        Text(text = temp, color = Color.White, fontWeight = FontWeight.Bold)
+        Text(text = formatNumberBasedOnLanguage(temp), color = Color.White, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -567,7 +523,7 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
 }
 
 @Composable
-fun DayDisplay(forecastState: Forecast?, temperatureUnit: String, language: String) {
+fun DayDisplay(forecastState: Forecast?, temperatureUnit: String) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf<Forecast.Item0?>(null) }
 
@@ -588,14 +544,13 @@ fun DayDisplay(forecastState: Forecast?, temperatureUnit: String, language: Stri
                 ) {
                     DayDisplayRow(
                         time = formatNumberBasedOnLanguage(
-                            DateTimeHelper.getDayOfWeek(item.dt.toLong()),
-                            language
+                            DateTimeHelper.getDayOfWeek(item.dt.toLong())
                         ),
                         date = formatNumberBasedOnLanguage(
                             DateTimeHelper.formatUnixTimestamp(
                                 item.dt.toLong(),
                                 "dd/mm"
-                            ), language
+                            )
                         ),
                         temp = "${item.main.temp.toInt()} ° $temperatureUnit",
                         icon = item.weather.firstOrNull()?.icon ?: "01n"
@@ -606,7 +561,7 @@ fun DayDisplay(forecastState: Forecast?, temperatureUnit: String, language: Stri
     }
 
     if (showBottomSheet && selectedItem != null) {
-        WeatherForecastBottomSheet(weatherState = selectedItem, temperatureUnit, language) {
+        WeatherForecastBottomSheet(weatherState = selectedItem, temperatureUnit) {
             showBottomSheet = false
             selectedItem = null
         }
@@ -618,7 +573,6 @@ fun DayDisplay(forecastState: Forecast?, temperatureUnit: String, language: Stri
 fun WeatherForecastBottomSheet(
     weatherState: Forecast.Item0?,
     temperatureUnit: String,
-    language: String,
     onClose: () -> Unit
 ) {
     var showBottomSheet by remember { mutableStateOf(true) }
@@ -662,8 +616,7 @@ fun WeatherForecastBottomSheet(
                     Text(
                         text = "${
                             formatNumberBasedOnLanguage(
-                                (weatherState?.main?.temp?.toInt() ?: 0).toString(),
-                                language
+                                (weatherState?.main?.temp?.toInt() ?: 0).toString()
                             )
                         } ° $temperatureUnit",
                         fontSize = 35.sp,
@@ -677,7 +630,7 @@ fun WeatherForecastBottomSheet(
                     ) {
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.main?.humidity?.toString() ?: "--", language
+                                weatherState?.main?.humidity?.toString() ?: "--"
                             ),
                             unit = "%",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
@@ -686,7 +639,7 @@ fun WeatherForecastBottomSheet(
                         )
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.wind?.speed?.toString() ?: "--", language
+                                weatherState?.wind?.speed?.toString() ?: "--"
                             ),
                             unit = " km/h",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
@@ -695,7 +648,7 @@ fun WeatherForecastBottomSheet(
                         )
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.main?.pressure?.toString() ?: "--", language
+                                weatherState?.main?.pressure?.toString() ?: "--"
                             ),
                             unit = " hPa",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
@@ -710,7 +663,7 @@ fun WeatherForecastBottomSheet(
                     ) {
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.clouds?.all?.toString() ?: "--", language
+                                weatherState?.clouds?.all?.toString() ?: "--"
                             ),
                             unit = "%",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
@@ -719,7 +672,7 @@ fun WeatherForecastBottomSheet(
                         )
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.rain?.`3h`?.toString() ?: "NoRain", language
+                                weatherState?.rain?.`3h`?.toString() ?: "NoRain"
                             ),
                             unit = "",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
@@ -809,7 +762,6 @@ fun LineChartScreen(
     isDayTime: Boolean,
     weatherCondition: String,
     color: Color,
-
     ) {
     val backgroundColor = getBackgroundColor(isDayTime, weatherCondition)
     Card(
