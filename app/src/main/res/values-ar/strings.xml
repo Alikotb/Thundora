@@ -19,4 +19,28 @@
     <string name="select_language">إختر اللغة</string>
     <string name="m_s">م/ث</string>
     <string name="mile_h">ميل/س</string>
+    <string name="daily_forecast">المناخ</string>
+    <string name="hello_alarm">مرحبا بالمنبه</string>
+    <string name="no_favorite_cities">لا توجد مدن مفضلة</string>
+    <string name="favorite_location">الموقع المفضل</string>
+    <string name="undo">تراجع</string>
+    <string name="item_deleted">تم حذف العنصر</string>
+    <string name="weather_icon2">أيقونة الطقس</string>
+    <string name="temperature">درجة الحرارة</string>
+    <string name="home">الرئيسية</string>
+    <string name="alarm">المنبه</string>
+    <string name="favorite">المفضلة</string>
+    <string name="setting">الإعدادات</string>
+    <string name="search">بحث</string>
+    <string name="favorite0">المفضلة</string>
+    <string name="location0">الموقع</string>
+    <string name="toggle_fab">تبديل الزر العائم</string>
+    <string name="close_">إغلاق</string>
+    <string name="add_item">إضافة عنصر</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="contact_us">اتصل بنا</string>
+    <string name="email_">البريد الإلكتروني</string>
+    <string name="facebook">فيسبوك</string>
+    <string name="linkedin">لينكدإن</string>
+
 </resources>

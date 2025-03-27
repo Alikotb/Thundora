@@ -1,16 +1,19 @@
 package com.example.thundora.view.map
 
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +23,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -62,7 +67,10 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.view.utilies.LoadingScreen
 
@@ -91,8 +99,6 @@ fun MapScreen(
     )
 
 
-
-
     val locationState by viewModel.locationState.collectAsStateWithLifecycle()
     val latitude by viewModel.latitude.collectAsStateWithLifecycle()
     val longitude by viewModel.longitude.collectAsStateWithLifecycle()
@@ -106,7 +112,7 @@ fun MapScreen(
     }
 
     LaunchedEffect(selectedPrediction.value) {
-            viewModel.getCityLocation(selectedPrediction.value?.getPrimaryText(null).toString())
+        viewModel.getCityLocation(selectedPrediction.value?.getPrimaryText(null).toString())
     }
 
     when (locationState) {
@@ -118,7 +124,8 @@ fun MapScreen(
             val data = (locationState as Response.Success).data
             if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
                 markerState.value.position = LatLng(data.lat, data.lon)
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
+                cameraPositionState.position =
+                    CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
             }
             MapBranch(
                 navToHome = { lat, lon ->
@@ -137,6 +144,8 @@ fun MapScreen(
         }
     }
 }
+
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MapBranch(
     navToHome: (Double, Double) -> Unit,
@@ -167,60 +176,75 @@ fun MapBranch(
         }
 
         Column(
-            Modifier
-                .fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Spacer(Modifier.height(32.dp))
             OutlinedTextField(
                 value = text.value,
                 onValueChange = { query ->
                     text.value = query
                     isExpanded.value = true
                     scope.launch {
-                        predictionsState.value = viewModel.getAddressPredictions(inputString = query)
+                        predictionsState.value =
+                            viewModel.getAddressPredictions(inputString = query)
                     }
                 },
-                label = { Text("Search", color = colorResource(R.color.blue_1200)) },
+                label = { Text(stringResource(R.string.search), color = colorResource(R.color.blue_1200)) },
                 singleLine = true,
+                textStyle = TextStyle(
+                    color = colorResource(R.color.black),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                         RoundedCornerShape(12.dp)
                     )
-                    .padding(16.dp)
+                    .border(1.dp, colorResource(R.color.blue_1200), RoundedCornerShape(12.dp))
+                    .padding(8.dp)
             )
 
             if (isExpanded.value && predictionsState.value.isNotEmpty()) {
-                predictionsState.value.forEach { prediction ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .padding(end = 32.dp, start = 8.dp)
-                            .clickable {
-                                text.value = prediction.getFullText(null).toString()
-                                selectedPrediction.value = prediction
-                                isExpanded.value = false
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp)
+                        .padding(horizontal = 8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        predictionsState.value.forEach { prediction ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 8.dp)
+                                    .clickable {
+                                        text.value = prediction.getFullText(null).toString()
+                                        selectedPrediction.value = prediction
+                                        isExpanded.value = false
+                                    },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Place,
+                                    contentDescription = null,
+                                    tint = colorResource(R.color.blue_1200),
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                Text(
+                                    text = prediction.getFullText(null).toString(),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.W800),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
-                            .background(
-                                Color(alpha = .6f, red = .6f, green = .6f, blue = .6f)
-                            )
-                        ,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = null,
-                            tint = colorResource(R.color.blue_1200),
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Text(
-                            text = prediction.getFullText(null).toString(),
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.W800),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
+                        }
                     }
                 }
             }
@@ -230,12 +254,14 @@ fun MapBranch(
     ExpandableFAB(
         navToHome = {
             val position = markerState.value.position
-                SharedPreference.getInstance().saveData(SharedKeys.LAT.toString(), position.latitude.toString())
-                SharedPreference.getInstance().saveData(SharedKeys.LON.toString(), position.longitude.toString())
-                navToHome(position.latitude, position.longitude)
+            SharedPreference.getInstance()
+                .saveData(SharedKeys.LAT.toString(), position.latitude.toString())
+            SharedPreference.getInstance()
+                .saveData(SharedKeys.LON.toString(), position.longitude.toString())
+            navToHome(position.latitude, position.longitude)
+            SharedPreference.getInstance().saveData(SharedKeys.LOCATION.toString(), R.string.map)
         },
         navToFavorite = {
-            Log.d("TAG", "MapBranch: add fav")
             val position = markerState.value.position
             viewModel.addFavoriteCity(position.latitude, position.longitude)
             navToFavorite()
@@ -265,13 +291,13 @@ fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
                         onClick = {
 
                             navToFavorite()
-                                  },
+                        },
                         containerColor = colorResource(R.color.blue_1200),
                         shape = CircleShape
                     ) {
                         Icon(
                             Icons.Default.Favorite,
-                            contentDescription = "Favorite",
+                            contentDescription = stringResource(R.string.favorite0),
                             tint = Color.White
                         )
                     }
@@ -284,7 +310,7 @@ fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
                     ) {
                         Icon(
                             Icons.Default.LocationOn,
-                            contentDescription = "Location",
+                            contentDescription = stringResource(R.string.location0),
                             tint = Color.White
                         )
                     }
@@ -301,11 +327,11 @@ fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
         ) {
             Icon(
                 imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = "Toggle FAB",
+                contentDescription = stringResource(R.string.toggle_fab),
                 tint = Color.White
             )
             Text(
-                text = if (isExpanded.value) "Close" else "Add Item",
+                text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(R.string.add_item),
                 color = Color.White,
                 modifier = Modifier.padding(start = 8.dp)
             )

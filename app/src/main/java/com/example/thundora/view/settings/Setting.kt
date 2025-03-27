@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,8 +42,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.thundora.LOCATION_CODE
 import com.example.thundora.R
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
@@ -52,10 +55,14 @@ import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.model.utils.getTemperatureUnit
 import com.example.thundora.ui.theme.DarkBlue
+import com.example.thundora.view.map.GPSLocation
+import com.example.thundora.view.map.GPSLocation.getLocation
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun SettingScreen(floatingFlag: MutableState<Boolean>) {
+fun SettingScreen(floatingFlag: MutableState<Boolean>, navToMap: () -> Unit) {
 
     val viewModel: SettingsViewModel = viewModel(
         factory = SettingsFactory(
@@ -81,7 +88,7 @@ fun SettingScreen(floatingFlag: MutableState<Boolean>) {
     ) {
         Spacer(Modifier.height(48.dp))
         LanguageSelectionChips(viewModel)
-        LocationSelectionChips(viewModel)
+        LocationSelectionChips(viewModel, navToMap)
         TempSelectionChips(viewModel)
         WendSpeedSelectionChips(viewModel)
     }
@@ -141,7 +148,6 @@ fun LanguageSelectionChips(viewModel: SettingsViewModel) {
                         selected = isSelected,
                         onClick = {
                             viewModel.setLanguage(option)
-                            Log.d("TAG", "LanguageSelectionChips: $option")
                             restartActivity(context)
                         },
                         label = {
@@ -243,13 +249,17 @@ fun TempSelectionChips(viewModel: SettingsViewModel) {
             }
         }
     }
-
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
-fun LocationSelectionChips(viewModel: SettingsViewModel) {
+fun LocationSelectionChips(viewModel: SettingsViewModel, navToMap: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val gpsLocation = GPSLocation
 
     val selectedOption by viewModel.selectedLocation.collectAsStateWithLifecycle()
+
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkBlue),
         shape = RoundedCornerShape(12.dp),
@@ -260,9 +270,7 @@ fun LocationSelectionChips(viewModel: SettingsViewModel) {
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = R.drawable.location),
                     contentDescription = null,
@@ -299,6 +307,38 @@ fun LocationSelectionChips(viewModel: SettingsViewModel) {
                         selected = isSelected,
                         onClick = {
                             viewModel.setLocationMode(option)
+                            if (option == context.getString(R.string.gps)) {
+                                scope.launch {
+                                    try {
+                                        if (gpsLocation.checkPermission(context)) {
+                                            if (!gpsLocation.isLocationEnabled(context)) {
+                                                gpsLocation.enableLocationService(context)
+                                            } else {
+                                                val location = getLocation(context)
+                                                location?.let {
+                                                    viewModel.setLocation(it.latitude, it.longitude)
+                                                }
+                                            }
+                                        } else {
+                                            val activity = context as? Activity
+                                            activity?.let {
+                                                ActivityCompat.requestPermissions(
+                                                    it,
+                                                    arrayOf(
+                                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                                    ),
+                                                    LOCATION_CODE
+                                                )
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("LocationError", "Failed to get location", e)
+                                    }
+                                }
+                            } else {
+                                navToMap()
+                            }
                         },
                         label = {
                             Text(
@@ -320,6 +360,7 @@ fun LocationSelectionChips(viewModel: SettingsViewModel) {
         }
     }
 }
+
 
 @Composable
 fun WendSpeedSelectionChips(viewModel: SettingsViewModel) {
@@ -420,14 +461,14 @@ fun ContactUsSection() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Email,
-                    contentDescription = "Email",
+                    contentDescription = stringResource(R.string.email),
                     tint = Color.White,
                     modifier = Modifier
                         .size(40.dp)
                         .padding(end = 12.dp)
                 )
                 Text(
-                    text = "Contact Us",
+                    text = stringResource(R.string.contact_us),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -440,11 +481,11 @@ fun ContactUsSection() {
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ContactIcon(Icons.Default.Email, "Email") {
+                ContactIcon(Icons.Default.Email, stringResource(R.string.email_)) {
                 }
-                ContactImageIcon(R.drawable.ic_facebook, "Facebook") {
+                ContactImageIcon(R.drawable.ic_facebook, stringResource(R.string.facebook)) {
                 }
-                ContactImageIcon(R.drawable.ic_linkedin, "LinkedIn") {
+                ContactImageIcon(R.drawable.ic_linkedin, stringResource(R.string.linkedin)) {
                 }
             }
         }

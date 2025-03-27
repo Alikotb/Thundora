@@ -97,6 +97,13 @@ class SettingsViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun setLocation(latitude: Double, longitude: Double) {
+        viewModelScope.launch {
+            repository.saveData(SharedKeys.LAT.toString(), latitude.toString())
+            repository.saveData(SharedKeys.LON.toString(), longitude.toString())
+        }
+    }
+
     fun setUnit(temp: String, wind: String) {
         setTempUnit(temp)
         setWindSpeed(wind)

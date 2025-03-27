@@ -1,7 +1,6 @@
 @file:Suppress("CAST_NEVER_SUCCEEDS")
 
 package com.example.thundora.view.home
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -66,6 +65,7 @@ import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getBackgroundColor
 import com.example.thundora.view.utilies.getIcon
 import com.example.thundora.view.utilies.getWeatherColors
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -87,6 +87,9 @@ fun HomeScreen(
             )
         )
     )
+    val context = LocalContext.current
+
+
 
     val language by viewModel.language.collectAsStateWithLifecycle()
     val temp by viewModel.temperatureUnit.collectAsStateWithLifecycle()
@@ -103,7 +106,6 @@ fun HomeScreen(
 
     when (apiForecast) {
         is Response.Success -> {
-            Log.d("asd", "HomeScreen: ${windSpeedUnit}")
             dataPoints = (apiForecast as Response.Success).data.forecast.list.take(4)
                 .filter { DateTimeHelper.isToday(it.dt.toLong()) }
                 .map { it.main.temp.toFloat() }
@@ -137,12 +139,10 @@ fun HomeScreen(
 
         is Response.Error -> {
             Text(text = (error as Response.Error).message)
-            Log.d("ali", "HomeScreen: error state")
 
         }
 
         is Response.Loading -> {
-            Log.d("ali", "HomeScreen: Loading state")
 
             Box(
                 Modifier
@@ -198,11 +198,12 @@ fun Home(
             weatherCondition = apiForecast.weather.weather.firstOrNull()?.main ?: "Clear",
             textColor,
         )
+
         WeatherForecast(todayForecastList, temperatureUnit)
         Spacer(Modifier.height(4.dp))
         DayDisplay(apiForecast.forecast, temperatureUnit)
 
-        Spacer(Modifier.height(100.dp))
+        Spacer(Modifier.height(150.dp))
     }
 }
 
@@ -281,13 +282,15 @@ fun WeatherCard(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "${
-                    weatherState?.main?.temp?.let {
+                    weatherState?.main?.temp?.toInt().let {
                         formatNumberBasedOnLanguage(
                             it.toString())
-                    } ?: "--"
+                    }
                 } ° $temperatureUnit",
                 fontSize = 35.sp,
-                color = textColor
+                color = textColor,
+                fontWeight = FontWeight.Bold
+
             )
 
             Spacer(Modifier.height(16.dp))
@@ -431,7 +434,7 @@ fun HourlyDataRow(time: String, temp: String, icon: String) {
         Text(text = time, color = Color.LightGray)
         GlideImage(
             model = "https://openweathermap.org/img/wn/$icon.png",
-            contentDescription = "Weather Icon",
+            contentDescription = stringResource(R.string.weather_icon2),
             modifier = Modifier.size(40.dp)
         )
         Text(text = formatNumberBasedOnLanguage(temp), color = Color.White, fontWeight = FontWeight.Bold)
@@ -496,7 +499,7 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
             )
         }
         Text(
-            text = temp,
+            text =  formatNumberBasedOnLanguage(temp),
             color = Color.White,
             modifier = Modifier
                 .constrainAs(tempereture) {
@@ -505,11 +508,13 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
 
-                }
+                },
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
         GlideImage(
             model = "https://openweathermap.org/img/wn/$icon.png",
-            contentDescription = "Weather Icon",
+            contentDescription =stringResource(R.string.weather_icon2),
             modifier = Modifier
                 .size(40.dp)
                 .constrainAs(image) {
@@ -526,35 +531,42 @@ fun DayDisplayRow(time: String, date: String, temp: String, icon: String) {
 fun DayDisplay(forecastState: Forecast?, temperatureUnit: String) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf<Forecast.Item0?>(null) }
-
-    forecastState?.let { forecast ->
-        val forecastMap = forecast.dailyForecasts()
-        forecastMap.forEach { (_, itemList) ->
-            val firstItem = itemList.firstOrNull()
-            firstItem?.let { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            selectedItem = item
-                            showBottomSheet = true
-                        }
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    DayDisplayRow(
-                        time = formatNumberBasedOnLanguage(
-                            DateTimeHelper.getDayOfWeek(item.dt.toLong())
-                        ),
-                        date = formatNumberBasedOnLanguage(
-                            DateTimeHelper.formatUnixTimestamp(
-                                item.dt.toLong(),
-                                "dd/mm"
-                            )
-                        ),
-                        temp = "${item.main.temp.toInt()} ° $temperatureUnit",
-                        icon = item.weather.firstOrNull()?.icon ?: "01n"
-                    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(text = stringResource(R.string.daily_forecast), fontSize = 20.sp, color = Color.White,
+            modifier = Modifier.padding(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        forecastState?.let { forecast ->
+            val forecastMap = forecast.dailyForecasts()
+            forecastMap.forEach { (_, itemList) ->
+                val firstItem = itemList.firstOrNull()
+                firstItem?.let { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedItem = item
+                                showBottomSheet = true
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        DayDisplayRow(
+                            time = formatNumberBasedOnLanguage(
+                                DateTimeHelper.getDayOfWeek(item.dt.toLong())
+                            ),
+                            date = formatNumberBasedOnLanguage(
+                                DateTimeHelper.formatUnixTimestamp(
+                                    item.dt.toLong(),
+                                    "dd/MM/yyyy"
+                                )
+                            ),
+                            temp = "${item.main.temp.toInt()} ° $temperatureUnit",
+                            icon = item.weather.firstOrNull()?.icon ?: "01n"
+                        )
+                    }
                 }
             }
         }
@@ -774,7 +786,7 @@ fun LineChartScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Temperature", fontSize = 20.sp, color = color)
+            Text(stringResource(R.string.temperature), fontSize = 20.sp, color = color)
             Spacer(modifier = Modifier.height(16.dp))
             LineChart(
                 dataPoints = dataPoints,

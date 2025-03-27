@@ -6,37 +6,26 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.os.Looper
 import android.provider.Settings
-import androidx.compose.runtime.MutableState
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.Priority
+import com.google.android.gms.location.LocationServices
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 object GPSLocation {
     @SuppressLint("MissingPermission")
-    fun getLocation(
-        locationState: MutableState<Location>,
-        fusedLocationClient: FusedLocationProviderClient,
-        mainLooper: Looper?
-    ) {
-        val locationRequest = LocationRequest.Builder(1000).apply {
-            setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-        }.build()
-        val locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationState.value = locationResult.lastLocation!!
-                fusedLocationClient.removeLocationUpdates(this)
-            }
+    suspend fun getLocation(context: Context): Location? {
+        return suspendCoroutine { continuation ->
+            val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+            fusedClient.lastLocation
+                .addOnSuccessListener { location ->
+                    continuation.resume(location)
+                }
+                .addOnFailureListener { exception ->
+                    continuation.resumeWithException(exception)
+                }
         }
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            mainLooper
-        )
     }
 
     fun checkPermission(context: Context): Boolean {
@@ -48,6 +37,7 @@ object GPSLocation {
                     context,
                     android.Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
+
     }
 
     fun enableLocationService(context: Context) {

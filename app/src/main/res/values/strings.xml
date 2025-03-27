@@ -12,11 +12,34 @@
     <string name="fahrenheit_f">Fahrenheit °F</string>
     <string name="kelvin_k">Kelvin °K</string>
     <string name="location">Location</string>
-    <string name="gps">Gps</string>
+    <string name="gps">GPS</string>
     <string name="map">Map</string>
     <string name="wend_speed_unit">Wend Speed Unit</string>
     <string name="select_language">Select Language</string>
     <string name="m_s">m/s</string>
     <string name="mile_h">mile/h</string>
+    <string name="daily_forecast">Daily Forecast</string>
+    <string name="hello_alarm">Hello Alarm</string>
+    <string name="no_favorite_cities">No Favorite Cities</string>
+    <string name="favorite_location">Favorite Location</string>
+    <string name="undo">Undo</string>
+    <string name="item_deleted">Item deleted</string>
+    <string name="weather_icon2">Weather Icon</string>
+    <string name="temperature">Temperature</string>
+    <string name="home">Home</string>
+    <string name="alarm">Alarm</string>
+    <string name="favorite">Favorite</string>
+    <string name="setting">Setting</string>
+    <string name="search">Search</string>
+    <string name="favorite0">Favorite</string>
+    <string name="location0">Location</string>
+    <string name="toggle_fab">Toggle FAB</string>
+    <string name="close_">Close</string>
+    <string name="add_item">Add Item</string>
+    <string name="email">Email</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="email_">Email</string>
+    <string name="facebook">Facebook</string>
+    <string name="linkedin">LinkedIn</string>
 </resources>
 

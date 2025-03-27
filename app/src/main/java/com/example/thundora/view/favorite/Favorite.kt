@@ -120,7 +120,7 @@ fun FavoriteScreen(
         }
         is Response.Success -> {
             if ((favoriteCities as Response.Success).data.isEmpty())
-                Text(text = "No Favorite Cities")
+                Text(text = stringResource(R.string.no_favorite_cities))
             else {
                 FavoritePage(
                     (favoriteCities as Response.Success).data,
@@ -171,7 +171,7 @@ fun FavoritePage(
                         tint = Color.White
                     )
                     Text(
-                        text = "Favorite Location",
+                        text = stringResource(R.string.favorite_location),
                         color = Color.White,
                         fontSize = 20.sp
                     )
@@ -298,11 +298,12 @@ fun <T> SwipeToDeleteContainer(
         }
     )
 
+    val context =LocalContext.current
     LaunchedEffect(isRemoved, currentItem) {
         if (isRemoved) {
             val result = snackBarHostState.showSnackbar(
-                message = "Item deleted",
-                actionLabel = "Undo",
+                message = context.getString(R.string.item_deleted),
+                actionLabel = context.getString(R.string.undo),
                 duration = SnackbarDuration.Short
             )
 

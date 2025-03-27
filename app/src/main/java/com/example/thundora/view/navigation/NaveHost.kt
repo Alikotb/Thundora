@@ -51,7 +51,9 @@ fun SetUpNavHost(
                 navController.navigate(ScreensRout.Details(city,lang,lat))
             }
         }
-        composable<ScreensRout.Settings>() { SettingScreen(floatingFlag) }
+        composable<ScreensRout.Settings>() { SettingScreen(floatingFlag){
+            navController.navigate(ScreensRout.Map)
+        } }
         composable<ScreensRout.Map> {
             MapScreen(floatingFlag=floatingFlag, navToHome = { selectedLat, selectedLon ->
                 navController.navigate(ScreensRout.Home(selectedLat,selectedLon)) {

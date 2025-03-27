@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 class SharedPreference(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
     companion object {
         @Volatile
         private var INSTANCE: SharedPreference? = null
@@ -17,6 +18,7 @@ class SharedPreference(context: Context) {
                 }
             }
         }
+
         fun getInstance() = INSTANCE!!
     }
 

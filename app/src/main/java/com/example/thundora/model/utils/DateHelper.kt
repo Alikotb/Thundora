@@ -5,8 +5,13 @@ import java.util.*
 
 object DateTimeHelper {
     fun formatUnixTimestamp(timestamp: Long?, pattern: String = "HH:mm"): String {
+        if (timestamp == null) return "Invalid Date"
         val sdf = SimpleDateFormat(pattern, Locale.getDefault())
-        return sdf.format(Date(timestamp!! * 1000L))
+        return sdf.format(Date(timestamp * 1000L))
+
+    }
+    fun getFormattedDate(timestamp: Long?,format:String="dd MMM"): String {
+        return formatUnixTimestamp(timestamp!!, format)
     }
 
     fun isDayTime(sunrise: Long, sunset: Long, currentTime: Long): Boolean {
@@ -28,7 +33,5 @@ object DateTimeHelper {
             Date((timestamp?.times(1000L)) ?: System.currentTimeMillis())
         )
     }
-    fun getFormattedDate(timestamp: Long?): String {
-        return formatUnixTimestamp(timestamp!!, "d MMM")
-    }
+
 }

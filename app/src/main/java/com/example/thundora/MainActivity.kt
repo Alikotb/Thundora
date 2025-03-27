@@ -1,11 +1,8 @@
 package com.example.thundora
 
-import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
-import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,9 +25,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -38,11 +37,14 @@ import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
 import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.map.GPSLocation
+import com.example.thundora.view.map.GPSLocation.getLocation
 import com.example.thundora.view.navigation.SetUpNavHost
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 const val LOCATION_CODE = 27
@@ -54,13 +56,15 @@ class MainActivity : ComponentActivity() {
     lateinit var flag: MutableState<Boolean>
     lateinit var floatingFlag: MutableState<Boolean>
     val gpsLocation = GPSLocation
+    val sharedPref=SharedPreference.getInstance()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
-        val lang=SharedPreference.getInstance().fetchData(SharedKeys.LANGUAGE.toString(),
+        val lang=getLanguage(sharedPref.fetchData(
+             SharedKeys.LANGUAGE.toString(),
             Locale.getDefault().language)
+        )
         applyLanguage(lang)
 
         enableEdgeToEdge()
@@ -71,8 +75,6 @@ class MainActivity : ComponentActivity() {
             flag = remember { mutableStateOf(true) }
             floatingFlag = remember { mutableStateOf(false) }
             navController = rememberNavController()
-            Log.i("al", "onCreate: ${locationState.value.longitude}")
-
             MainScreen(flag)
         }
     }
@@ -80,30 +82,46 @@ class MainActivity : ComponentActivity() {
     private fun applyLanguage(languageCode: String) {
         val locale = Locale(languageCode)
         Locale.setDefault(locale)
-
         val config = resources.configuration
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
     }
 
+
     override fun onStart() {
         super.onStart()
+        val context = this
+        if(sharedPref.fetchData(SharedKeys.LOCATION.toString(),"GPS")=="GPS") {
+            if (gpsLocation.checkPermission(context)) {
+                if (!gpsLocation.isLocationEnabled(context)) {
+                    gpsLocation.enableLocationService(context)
+                } else {
+                    lifecycleScope.launch {
+                        try {
+                            val location = getLocation(context)
+                            location?.let {
+                                locationState.value = it
+                                sharedPref.saveData(SharedKeys.LAT.toString(),it.latitude.toString())
+                                sharedPref.saveData(SharedKeys.LON.toString(),it.longitude.toString())
 
-
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-        deviceId: Int
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
-        if (requestCode == LOCATION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                gpsLocation.getLocation(locationState, fusedLocationClient, Looper.getMainLooper())
+                            }
+                        } catch (e: Exception) {
+                        }
+                    }
+                }
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
+                    LOCATION_CODE
+                )
+            }
         }
     }
+
 
     @Composable
     fun BottomNavigationBar(navController: NavController) {
@@ -111,25 +129,25 @@ class MainActivity : ComponentActivity() {
         val navigationItems = listOf(
             BottomNAvigationBar(
                 ScreensRout.Home(0.0, 0.0),
-                "Home",
+                stringResource(R.string.home),
                 Icons.Filled.Home,
                 Icons.Outlined.Home
             ),
             BottomNAvigationBar(
                 ScreensRout.Alarm,
-                "Alarm",
+                stringResource(R.string.alarm),
                 Icons.Filled.Notifications,
                 Icons.Outlined.Notifications
             ),
             BottomNAvigationBar(
                 ScreensRout.Favorite,
-                "Favorite",
+                stringResource(R.string.favorite),
                 Icons.Filled.Favorite,
                 Icons.Outlined.Favorite
             ),
             BottomNAvigationBar(
                 ScreensRout.Settings,
-                "Setting",
+                stringResource(R.string.setting),
                 Icons.Filled.Settings,
                 Icons.Outlined.Settings
             )
@@ -220,30 +238,6 @@ class MainActivity : ComponentActivity() {
                 View.SYSTEM_UI_FLAG_VISIBLE
             }
         }
-    }
-
-    fun gpsLocation() {
-        if (gpsLocation.checkPermission(this)) {
-            if (!gpsLocation.isLocationEnabled(this)) {
-                gpsLocation.enableLocationService(this)
-            } else {
-                gpsLocation.getLocation(
-                    locationState = locationState,
-                    fusedLocationClient,
-                    Looper.getMainLooper()
-                )
-            }
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                LOCATION_CODE
-            )
-        }
-
     }
 
 
