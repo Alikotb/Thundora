@@ -78,7 +78,7 @@ import com.example.thundora.view.utilies.LoadingScreen
 @Composable
 fun MapScreen(
     floatingFlag: MutableState<Boolean>,
-    navToHome: (lat: Double, lon: Double) -> Unit,
+    navToHome: () -> Unit,
     navToFavorite: () -> Unit,
 ) {
     floatingFlag.value = false
@@ -128,8 +128,8 @@ fun MapScreen(
                     CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
             }
             MapBranch(
-                navToHome = { lat, lon ->
-                    navToHome(lat, lon)
+                navToHome = {
+                    navToHome()
                 },
                 navToFavorite = navToFavorite,
                 viewModel = viewModel,
@@ -148,7 +148,7 @@ fun MapScreen(
 @SuppressLint("SuspiciousIndentation")
 @Composable
 fun MapBranch(
-    navToHome: (Double, Double) -> Unit,
+    navToHome: () -> Unit,
     navToFavorite: () -> Unit,
     viewModel: MapViewModel,
     markerState: MutableState<MarkerState>,
@@ -192,7 +192,12 @@ fun MapBranch(
                             viewModel.getAddressPredictions(inputString = query)
                     }
                 },
-                label = { Text(stringResource(R.string.search), color = colorResource(R.color.blue_1200)) },
+                label = {
+                    Text(
+                        stringResource(R.string.search),
+                        color = colorResource(R.color.blue_1200)
+                    )
+                },
                 singleLine = true,
                 textStyle = TextStyle(
                     color = colorResource(R.color.black),
@@ -258,8 +263,7 @@ fun MapBranch(
                 .saveData(SharedKeys.LAT.toString(), position.latitude.toString())
             SharedPreference.getInstance()
                 .saveData(SharedKeys.LON.toString(), position.longitude.toString())
-            navToHome(position.latitude, position.longitude)
-            SharedPreference.getInstance().saveData(SharedKeys.LOCATION.toString(), R.string.map)
+            navToHome()
         },
         navToFavorite = {
             val position = markerState.value.position

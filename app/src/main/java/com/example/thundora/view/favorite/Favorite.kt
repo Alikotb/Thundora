@@ -213,7 +213,6 @@ fun FavoriteCard(
             .clickable {
                 navTodestails(item.name, item.coord.lat, item.coord.lon)
             },
-
         ) {
         Row(
             modifier = Modifier
@@ -232,7 +231,7 @@ fun FavoriteCard(
             ) {
                 Text(
                     text = "${item.name}\n" +
-                            (CountryHelper.getCountryName(item.sys.country.toString())),
+                            (CountryHelper.getCountryName(item.sys.country)?:""),
                     color = Color.White,
                     fontSize = 18.sp,
                     textAlign = TextAlign.Start,

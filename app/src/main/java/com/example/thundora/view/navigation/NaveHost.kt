@@ -33,11 +33,11 @@ fun SetUpNavHost(
         composable<ScreensRout.Splash>() {
             Splash(flag){
                 navController.popBackStack()
-                navController.navigate(ScreensRout.Home(0.0,0.0))
+                navController.navigate(ScreensRout.Home)
             }
         }
         composable<ScreensRout.Home>{ backStackEntry ->
-            HomeScreen(flag,floatingFlag) { newLat, newLon ->
+            HomeScreen(flag,floatingFlag) {
                 navController.navigate(ScreensRout.Map)
             }
         }
@@ -55,16 +55,10 @@ fun SetUpNavHost(
             navController.navigate(ScreensRout.Map)
         } }
         composable<ScreensRout.Map> {
-            MapScreen(floatingFlag=floatingFlag, navToHome = { selectedLat, selectedLon ->
-                navController.navigate(ScreensRout.Home(selectedLat,selectedLon)) {
-                    popUpTo("map") { inclusive = true }
-                    launchSingleTop = true
-                }
+            MapScreen(floatingFlag=floatingFlag, navToHome = { ->
+                navController.popBackStack()
             }, navToFavorite = {
-                navController.navigate(ScreensRout.Favorite) {
-                    popUpTo("map") { inclusive = true }
-                    launchSingleTop = true
-                }
+                navController.popBackStack()
             }
             )
         }

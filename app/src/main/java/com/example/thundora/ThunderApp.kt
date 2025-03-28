@@ -3,10 +3,13 @@ package com.example.thundora
 import android.app.Application
 import com.example.thundora.model.sharedpreference.SharedPreference
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 
 class ThunderApp : Application() {
     companion object {
         lateinit var instance: ThunderApp
+            private set
+        lateinit var placesClient: PlacesClient
             private set
     }
 
@@ -17,6 +20,7 @@ class ThunderApp : Application() {
         if (!Places.isInitialized()) {
             Places.initialize(this, BuildConfig.googleApiKey)
         }
+        placesClient = Places.createClient(this)
 
         SharedPreference.initSharedPreferences(this)
     }

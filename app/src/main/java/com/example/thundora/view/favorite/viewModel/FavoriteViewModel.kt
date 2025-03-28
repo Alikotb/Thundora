@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.api.Weather
+import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.repositary.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,12 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
     val language: StateFlow<String> = _language
     private val _temperatureUnit = MutableStateFlow("")
     val temperatureUnit: StateFlow<String> =  _temperatureUnit.asStateFlow()
+
+    init{
+        _language.value = repository.fetchData(SharedKeys.LANGUAGE.toString(), "en")
+        _temperatureUnit.value = repository.fetchData(SharedKeys.DEGREE.toString(),"Celsius")
+    }
+
 
     fun getFavoriteCities() {
         try {
@@ -78,7 +85,6 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
                         _favoriteCity.emit(Response.Success(weather))
                         weather.name = city
                         repository.updateWeather(weather)
-
                     }
             }
         } catch (e: Exception) {

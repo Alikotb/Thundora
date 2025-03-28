@@ -3,7 +3,6 @@ package com.example.thundora.view.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,10 +41,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thundora.LOCATION_CODE
 import com.example.thundora.R
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
@@ -320,20 +317,8 @@ fun LocationSelectionChips(viewModel: SettingsViewModel, navToMap: () -> Unit) {
                                                 }
                                             }
                                         } else {
-                                            val activity = context as? Activity
-                                            activity?.let {
-                                                ActivityCompat.requestPermissions(
-                                                    it,
-                                                    arrayOf(
-                                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
-                                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
-                                                    ),
-                                                    LOCATION_CODE
-                                                )
-                                            }
                                         }
                                     } catch (e: Exception) {
-                                        Log.e("LocationError", "Failed to get location", e)
                                     }
                                 }
                             } else {

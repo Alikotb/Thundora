@@ -1,9 +1,11 @@
 package com.example.thundora
 
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -41,6 +43,7 @@ import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.map.GPSLocation.getLocation
+import com.example.thundora.view.map.GPSLocation.isLocationEnabled
 import com.example.thundora.view.navigation.SetUpNavHost
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -56,14 +59,17 @@ class MainActivity : ComponentActivity() {
     lateinit var flag: MutableState<Boolean>
     lateinit var floatingFlag: MutableState<Boolean>
     val gpsLocation = GPSLocation
-    val sharedPref=SharedPreference.getInstance()
+    val sharedPref = SharedPreference.getInstance()
+    val context = this
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val lang=getLanguage(sharedPref.fetchData(
-             SharedKeys.LANGUAGE.toString(),
-            Locale.getDefault().language)
+        val lang = getLanguage(
+            sharedPref.fetchData(
+                SharedKeys.LANGUAGE.toString(),
+                Locale.getDefault().language
+            )
         )
         applyLanguage(lang)
 
@@ -90,10 +96,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        val context = this
-        if(sharedPref.fetchData(SharedKeys.LOCATION.toString(),"GPS")=="GPS") {
+
+
+        if (sharedPref.fetchData(SharedKeys.LOCATION.toString(), "GPS") == "GPS") {
+
             if (gpsLocation.checkPermission(context)) {
-                if (!gpsLocation.isLocationEnabled(context)) {
+                if (!isLocationEnabled(this)) {
+
                     gpsLocation.enableLocationService(context)
                 } else {
                     lifecycleScope.launch {
@@ -101,9 +110,14 @@ class MainActivity : ComponentActivity() {
                             val location = getLocation(context)
                             location?.let {
                                 locationState.value = it
-                                sharedPref.saveData(SharedKeys.LAT.toString(),it.latitude.toString())
-                                sharedPref.saveData(SharedKeys.LON.toString(),it.longitude.toString())
-
+                                sharedPref.saveData(
+                                    SharedKeys.LAT.toString(),
+                                    it.latitude.toString()
+                                )
+                                sharedPref.saveData(
+                                    SharedKeys.LON.toString(),
+                                    it.longitude.toString()
+                                )
                             }
                         } catch (e: Exception) {
                         }
@@ -120,15 +134,46 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+
+
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+        if (requestCode == LOCATION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                val context = this
+                lifecycleScope.launch {
+                    try {
+                        val location = getLocation(context)
+                        location?.let {
+                            sharedPref.saveData(SharedKeys.LAT.toString(), it.latitude.toString())
+                            sharedPref.saveData(SharedKeys.LON.toString(), it.longitude.toString())
+                        } ?: run {
+                            Toast.makeText(context, "Unable to get location!", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     @Composable
     fun BottomNavigationBar(navController: NavController) {
         val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
         val navigationItems = listOf(
             BottomNAvigationBar(
-                ScreensRout.Home(0.0, 0.0),
+                ScreensRout.Home,
                 stringResource(R.string.home),
                 Icons.Filled.Home,
                 Icons.Outlined.Home
@@ -239,7 +284,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 
 }
 

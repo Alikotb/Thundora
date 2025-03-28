@@ -141,7 +141,7 @@ fun WeatherCardDetails(
                 ) {
                     Text(
                         text = "${weatherState.name}\n" +
-                                (CountryHelper.getCountryName(weatherState.sys.country.toString())),
+                               (CountryHelper.getCountryName((weatherState.sys.country))),
                         color = Color.White,
                         fontSize = 18.sp,
                         textAlign = TextAlign.Start,

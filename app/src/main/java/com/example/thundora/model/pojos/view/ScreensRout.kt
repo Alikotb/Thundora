@@ -6,7 +6,7 @@ sealed class ScreensRout {
     @Serializable
     object Splash : ScreensRout()
     @Serializable
-    data class Home(val lat: Double, val lon: Double) : ScreensRout()
+    object Home : ScreensRout()
     @Serializable
     object Alarm : ScreensRout()
     @Serializable

@@ -71,7 +71,7 @@ import com.example.thundora.view.utilies.getWeatherColors
 fun HomeScreen(
     flag: MutableState<Boolean>,
     floatingFlag: MutableState<Boolean>,
-    navToMaps: (latitude: Double, longitude: Double) -> Unit
+    navToMaps: () -> Unit
 ) {
     floatingFlag.value = false
     flag.value = true
@@ -160,7 +160,7 @@ fun HomeScreen(
 fun Home(
     apiForecast: ApiResponse,
     flag: MutableState<Boolean>,
-    navToMaps: (latitude: Double, longitude: Double) -> Unit,
+    navToMaps: () -> Unit,
     dataPoints: MutableList<Float>,
     hourlyData: MutableList<String>,
     temperatureUnit: String,
@@ -185,7 +185,7 @@ fun Home(
                 flag,
                 temperatureUnit,
                 speedUnit,
-            ) { navToMaps(it.coord.lat, it.coord.lon) }
+            ) { navToMaps() }
         }
         LineChartScreen(
             dataPoints = dataPoints,
