@@ -1,4 +1,3 @@
-import java.io.File
 import java.util.Properties
 
 plugins {
@@ -117,6 +116,13 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-drawablepainter:0.35.0-alpha")
 
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation ("androidx.compose.material:material:1.5.4")
+
+    implementation ("androidx.work:work-runtime:2.8.1")
+
+
+    implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 }

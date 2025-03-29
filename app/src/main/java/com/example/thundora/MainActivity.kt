@@ -21,19 +21,34 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
@@ -49,6 +64,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import java.util.Locale
+import androidx.compose.runtime.getValue
 
 const val LOCATION_CODE = 27
 
@@ -76,13 +92,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
+            navController = rememberNavController()
+
+            val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
+
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
             locationState = remember { mutableStateOf(Location("")) }
             flag = remember { mutableStateOf(true) }
             floatingFlag = remember { mutableStateOf(false) }
-            navController = rememberNavController()
-            MainScreen(flag)
+
+            val fabIcon = remember { mutableStateOf(Icons.Default.Favorite) }
+            val fabAction = remember { mutableStateOf({}) }
+            MainScreen(flag, fabIcon, fabAction, currentBackStackEntry, selectedNavigationIndex)
         }
+
     }
 
     private fun applyLanguage(languageCode: String) {
@@ -169,8 +193,11 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun BottomNavigationBar(navController: NavController) {
-        val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
+    fun BottomNavigationBar(
+        navController: NavController,
+        currentBackStackEntry: NavBackStackEntry?,
+        selectedNavigationIndex: MutableIntState
+    ) {
         val navigationItems = listOf(
             BottomNAvigationBar(
                 ScreensRout.Home,
@@ -199,6 +226,16 @@ class MainActivity : ComponentActivity() {
 
         )
 
+        LaunchedEffect(currentBackStackEntry) {
+            val currentRoute = currentBackStackEntry?.destination?.route?.substringAfterLast(".")
+            val matchedScreen = navigationItems.firstOrNull {
+                it.title::class.simpleName == currentRoute
+            }
+            matchedScreen?.let {
+                selectedNavigationIndex.intValue = navigationItems.indexOf(it)
+            }
+        }
+
         NavigationBar(containerColor = DeepBlue) {
             navigationItems.forEachIndexed { index, item ->
                 val isSelected = selectedNavigationIndex.intValue == index
@@ -207,9 +244,15 @@ class MainActivity : ComponentActivity() {
                     onClick = {
                         if (selectedNavigationIndex.intValue != index) {
                             selectedNavigationIndex.intValue = index
-                            navController.popBackStack()
-                            navController.navigate(item.title)
 
+                            if (item.title == ScreensRout.Home) {
+                                navController.popBackStack(item.title, inclusive = false)
+                            } else {
+                                navController.navigate(item.title) {
+                                    popUpTo(ScreensRout.Home) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }
                         }
                     },
                     icon = {
@@ -238,33 +281,41 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
-    fun MainScreen(flag: MutableState<Boolean>) {
+    fun MainScreen(
+        flag: MutableState<Boolean>,
+        fabIcon: MutableState<ImageVector>,
+        fabAction: MutableState<() -> Unit>,
+        currentBackStackEntry: NavBackStackEntry?,
+        selectedNavigationIndex: MutableIntState
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 if (flag.value) {
-                    BottomNavigationBar(navController)
+                    BottomNavigationBar(
+                        navController,
+                        currentBackStackEntry,
+                        selectedNavigationIndex
+                    )
                 }
             },
             floatingActionButton = {
                 if (floatingFlag.value) {
                     FloatingActionButton(
-                        onClick = {
-                            navController.navigate(ScreensRout.Map)
-                        },
+                        onClick = fabAction.value,
                         containerColor = colorResource(R.color.blue_1200),
                         shape = CircleShape
                     ) {
                         Icon(
-                            Icons.Default.Favorite,
-                            contentDescription = "Favorite",
+                            imageVector = fabIcon.value,
+                            contentDescription = "Floating Button",
                             tint = Color.White
                         )
                     }
                 }
             }
         ) { innerPadding ->
-            SetUpNavHost(navController = navController, flag, floatingFlag)
+            SetUpNavHost(navController = navController, flag, floatingFlag, fabIcon, fabAction)
 
         }
     }

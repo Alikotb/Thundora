@@ -1,22 +1,22 @@
 package com.example.thundora.view.map
 
-\import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
 import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.repositary.Repository
-\import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.PlaceTypes
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MapViewModel(
     private val client: PlacesClient,

@@ -1,22 +1,25 @@
 package com.example.thundora.view.navigation
 
 import android.annotation.SuppressLint
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import com.example.thundora.view.map.MapScreen
-import com.example.thundora.view.alarm.AlarmScreen
-import com.example.thundora.view.favorite.FavoriteScreen
-import com.example.thundora.view.home.HomeScreen
-import com.example.thundora.view.settings.SettingScreen
-import com.example.thundora.view.splash.Splash
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.thundora.model.pojos.view.ScreensRout
+import com.example.thundora.view.alarm.AlarmScreen
 import com.example.thundora.view.favorite.DetailsScreen
+import com.example.thundora.view.favorite.FavoriteScreen
+import com.example.thundora.view.home.HomeScreen
+import com.example.thundora.view.map.MapScreen
+import com.example.thundora.view.settings.SettingScreen
+import com.example.thundora.view.splash.Splash
 
 @SuppressLint("ComposableDestinationInComposeScope")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -25,49 +28,68 @@ fun SetUpNavHost(
     navController: NavHostController,
     flag: MutableState<Boolean>,
     floatingFlag: MutableState<Boolean>,
+    fabIcon: MutableState<ImageVector>,
+    fabAction: MutableState<() -> Unit>
 ) {
     NavHost(
         navController = navController,
-        startDestination =  ScreensRout.Splash
+        startDestination = ScreensRout.Splash
     ) {
-        composable<ScreensRout.Splash>() {
-            Splash(flag){
+        composable<ScreensRout.Splash> {
+            Splash(flag) {
                 navController.popBackStack()
                 navController.navigate(ScreensRout.Home)
             }
         }
-        composable<ScreensRout.Home>{ backStackEntry ->
-            HomeScreen(flag,floatingFlag) {
+
+        composable<ScreensRout.Home> {
+            HomeScreen(flag, floatingFlag) {
                 navController.navigate(ScreensRout.Map)
             }
         }
 
-        composable<ScreensRout.Alarm>() { AlarmScreen(floatingFlag) }
-
-        composable<ScreensRout.Favorite>() {
-
-            FavoriteScreen(floatingFlag){
-                city,lang,lat->
-                navController.navigate(ScreensRout.Details(city,lang,lat))
+        composable<ScreensRout.Alarm> {
+            AlarmScreen(floatingFlag, fabIcon, fabAction)
+        }
+        composable<ScreensRout.Favorite> {
+            floatingFlag.value = true
+            fabIcon.value = Icons.Default.Favorite
+            fabAction.value = {
+                navController.navigate(ScreensRout.Map)
+            }
+            FavoriteScreen { city, lang, lat ->
+                navController.navigate(ScreensRout.Details(city, lang, lat))
             }
         }
-        composable<ScreensRout.Settings>() { SettingScreen(floatingFlag){
-            navController.navigate(ScreensRout.Map)
-        } }
-        composable<ScreensRout.Map> {
-            MapScreen(floatingFlag=floatingFlag, navToHome = { ->
-                navController.popBackStack()
-            }, navToFavorite = {
-                navController.popBackStack()
+
+        composable<ScreensRout.Settings> {
+            floatingFlag.value = false
+            fabIcon.value = Icons.Default.Favorite
+            fabAction.value = { navController.navigate(ScreensRout.Map) }
+            SettingScreen(floatingFlag) {
+                navController.navigate(ScreensRout.Map)
             }
+        }
+
+        composable<ScreensRout.Map> {
+            floatingFlag.value = false
+            fabIcon.value = Icons.Default.Favorite
+            fabAction.value = { }
+            MapScreen(
+                floatingFlag = floatingFlag,
+                navToHome = {
+                    navController.navigate(ScreensRout.Home)
+                },
+                navToFavorite = {
+                    navController.navigateUp()
+                }
             )
         }
+
         composable<ScreensRout.Details> {
-            val Lat= it.toRoute<ScreensRout.Details>().lat
-            val lon =it.toRoute<ScreensRout.Details>().lang
-            val city=it.toRoute<ScreensRout.Details>().city
-            DetailsScreen(floatingFlag,city,Lat,lon)
+            val details = it.toRoute<ScreensRout.Details>()
+            floatingFlag.value = false
+            DetailsScreen(floatingFlag, details.city, details.lat, details.lang)
         }
     }
 }
-

@@ -37,8 +37,8 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
 
     private fun fetchSettings() {
         _language.value = repo.fetchData(SharedKeys.LANGUAGE.toString(), "en")
-        _units.value = repo.fetchData(SharedKeys.SPEED_UNIT.toString(), "metric")
         _temperatureUnit.value = repo.fetchData(SharedKeys.DEGREE.toString(),"Celsius")
+        _units.value = repo.fetchData(SharedKeys.SPEED_UNIT.toString(), "metric")
         _latitude.value = repo.fetchData(SharedKeys.LAT.toString(), "0.0").toDouble()
         _longitude.value = repo.fetchData(SharedKeys.LON.toString(), "0.0").toDouble()
         getForecast()

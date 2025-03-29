@@ -1,5 +1,9 @@
 package com.example.thundora.view.favorite
 
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -24,13 +28,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -44,7 +44,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -55,30 +60,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
+import com.example.thundora.model.pojos.api.Response
+import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.sharedpreference.SharedPreference
-import com.example.thundora.view.favorite.viewModel.FavoriteFactory
-import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.utils.CountryHelper
 import com.example.thundora.model.utils.DateTimeHelper
 import com.example.thundora.model.utils.formatNumberBasedOnLanguage
 import com.example.thundora.model.utils.getDegree
 import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.model.utils.transferUnit
+import com.example.thundora.view.favorite.viewModel.FavoriteFactory
+import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
 import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getIcon
 import kotlinx.coroutines.delay
@@ -86,10 +85,8 @@ import kotlinx.coroutines.delay
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FavoriteScreen(
-    floatingFlag: MutableState<Boolean>,
     navToDetails: (city: String, lang: Double, lat: Double) -> Unit
 ) {
-    floatingFlag.value = true
     val viewModel: FavoriteViewModel = viewModel(
         factory = FavoriteFactory(
             Repository.getInstance(

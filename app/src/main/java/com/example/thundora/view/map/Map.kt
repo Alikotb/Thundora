@@ -124,6 +124,9 @@ fun MapScreen(
             val data = (locationState as Response.Success).data
             if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
                 markerState.value.position = LatLng(data.lat, data.lon)
+
+            }
+            LaunchedEffect(markerState.value) {
                 cameraPositionState.position =
                     CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
             }
@@ -166,10 +169,15 @@ fun MapBranch(
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 compassEnabled = false,
-                mapToolbarEnabled = false
+                mapToolbarEnabled = false,
+
             ),
             modifier = Modifier.fillMaxSize(),
-            properties = MapProperties(mapType = MapType.SATELLITE, isMyLocationEnabled = false),
+            onMapClick = {
+                markerState.value= MarkerState(it)
+
+            },
+            properties = MapProperties(mapType = MapType.HYBRID, isMyLocationEnabled = false),
             cameraPositionState = cameraPositionState
         ) {
             Marker(state = markerState.value, title = "Location Marker")
@@ -321,25 +329,30 @@ fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
                 }
             }
         }
-        ExtendedFloatingActionButton(
-            onClick = { isExpanded.value = !isExpanded.value },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 128.dp),
-            containerColor = colorResource(R.color.blue_1200),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = stringResource(R.string.toggle_fab),
-                tint = Color.White
-            )
-            Text(
-                text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(R.string.add_item),
-                color = Color.White,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+
+            ExtendedFloatingActionButton(
+                onClick = { isExpanded.value = !isExpanded.value },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 128.dp),
+                containerColor = colorResource(R.color.blue_1200),
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
+                    contentDescription = stringResource(R.string.toggle_fab),
+                    tint = Color.White
+                )
+                Text(
+                    text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(
+                        R.string.add_item
+                    ),
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
         }
-    }
+
 }
 

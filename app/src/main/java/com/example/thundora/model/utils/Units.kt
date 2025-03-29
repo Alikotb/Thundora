@@ -86,7 +86,6 @@ fun getLanguage(apiUnit: String): String {
     return when (apiUnit) {
         "English" -> "en"
         "العربية" -> "ar"
-        "العربية"->"ar"
         else -> "en"
     }
 }
