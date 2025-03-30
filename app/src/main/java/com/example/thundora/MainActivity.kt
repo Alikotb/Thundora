@@ -1,5 +1,6 @@
 package com.example.thundora
 
+import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
@@ -32,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.thundora.model.pojos.view.BottomNAvigationBar
 import com.example.thundora.model.pojos.view.ScreensRout
 import com.example.thundora.model.pojos.view.SharedKeys
+import com.example.thundora.model.services.AlarmReceiver
 import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.ui.theme.DeepBlue
@@ -64,7 +67,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import java.util.Locale
-import androidx.compose.runtime.getValue
 
 const val LOCATION_CODE = 27
 
@@ -81,6 +83,9 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AlarmReceiver.stopAlarmSound()
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancelAll()
         val lang = getLanguage(
             sharedPref.fetchData(
                 SharedKeys.LANGUAGE.toString(),

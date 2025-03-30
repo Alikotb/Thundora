@@ -41,5 +41,6 @@
     <string name="email_">Email</string>
     <string name="facebook">Facebook</string>
     <string name="linkedin">LinkedIn</string>
+    <string name="alarm_schedule">Alarm Schedule</string>
 </resources>
 

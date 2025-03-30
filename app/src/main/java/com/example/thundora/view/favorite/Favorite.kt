@@ -28,9 +28,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -115,6 +119,7 @@ fun FavoriteScreen(
         Response.Loading -> {
             LoadingScreen()
         }
+
         is Response.Success -> {
             if ((favoriteCities as Response.Success).data.isEmpty())
                 Text(text = stringResource(R.string.no_favorite_cities))
@@ -210,7 +215,7 @@ fun FavoriteCard(
             .clickable {
                 navTodestails(item.name, item.coord.lat, item.coord.lon)
             },
-        ) {
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -228,7 +233,7 @@ fun FavoriteCard(
             ) {
                 Text(
                     text = "${item.name}\n" +
-                            (CountryHelper.getCountryName(item.sys.country)?:""),
+                            (CountryHelper.getCountryName(item.sys.country) ?: ""),
                     color = Color.White,
                     fontSize = 18.sp,
                     textAlign = TextAlign.Start,
@@ -294,7 +299,7 @@ fun <T> SwipeToDeleteContainer(
         }
     )
 
-    val context =LocalContext.current
+    val context = LocalContext.current
     LaunchedEffect(isRemoved, currentItem) {
         if (isRemoved) {
             val result = snackBarHostState.showSnackbar(

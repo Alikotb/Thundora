@@ -7,7 +7,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.thundora.model.pojos.api.AlarmEntity
 import java.util.Calendar
@@ -47,6 +46,18 @@ class AlarmScheduler(private val context: Context) {
             calendar.timeInMillis,
             pendingIntent
         )
+    }
+    fun cancelAlarm(alarmId: Int) {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = "android.intent.action.ALARM_TRIGGERED"
+            putExtra("id", alarmId)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, alarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        alarmManager.cancel(pendingIntent)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
