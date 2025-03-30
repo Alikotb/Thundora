@@ -1,6 +1,7 @@
 package com.example.thundora.model.repositary
 
 import com.example.thundora.model.localdatasource.LocalDataSource
+import com.example.thundora.model.pojos.api.AlarmEntity
 import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Forecast
 import com.example.thundora.model.pojos.api.GeocodingResponseItem
@@ -59,6 +60,26 @@ class Repository private constructor(private val remote: RemoteDataSource,privat
 
     override suspend fun updateWeather(weather: Weather) {
         local.updateWeather(weather)
+    }
+
+    override fun getAllAlarms(): Flow<List<AlarmEntity>> {
+       return local.getAllAlarms()
+    }
+
+    override suspend fun getAlarmById(id: Int): AlarmEntity? {
+       return local.getAlarmById(id)
+    }
+
+    override suspend fun insertAlarm(alarm: AlarmEntity) {
+        local.insertAlarm(alarm)
+    }
+
+    override suspend fun deleteAlarmById(alarmId: Int) {
+        local.deleteAlarmById(alarmId)
+    }
+
+    override suspend fun updateAlarm(alarm: AlarmEntity) {
+        local.updateAlarm(alarm)
     }
 
 

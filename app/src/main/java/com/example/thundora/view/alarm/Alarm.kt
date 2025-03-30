@@ -1,6 +1,11 @@
 package com.example.thundora.view.alarm
 
+import android.app.TimePickerDialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -60,8 +65,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
+import com.example.thundora.model.localdatasource.LocalDataSource
+import com.example.thundora.model.localdatasource.WeatherDataBase
+import com.example.thundora.model.pojos.api.AlarmEntity
+import com.example.thundora.model.remotedatasource.ApiClient
+import com.example.thundora.model.remotedatasource.RemoteDataSource
+import com.example.thundora.model.repositary.Repository
+import com.example.thundora.model.services.AlarmScheduler
+import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.ui.theme.DarkBlue
+import com.example.thundora.view.alarm.alarmviewmodel.AlarmFactory
+import com.example.thundora.view.alarm.alarmviewmodel.AlarmViewModel
 import com.example.thundora.view.utilies.getIcon
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -70,6 +86,7 @@ import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -81,15 +98,27 @@ fun AlarmScreen(
     val startDuration = remember { mutableStateOf("Start duration") }
     val endDuration = remember { mutableStateOf("End duration") }
     val dayAndTime = remember { mutableStateOf("${startDuration.value}, ${endDuration.value}") }
-
+    val viewModel: AlarmViewModel = viewModel(
+        factory = AlarmFactory(
+            Repository.getInstance(
+                RemoteDataSource(ApiClient.weatherService),
+                LocalDataSource(
+                    WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
+                    SharedPreference.getInstance()
+                )
+            ),
+            context = LocalContext.current
+        )
+    )
     floatingFlag.value = true
-    val context = LocalContext.current
     fabIcon.value = Icons.Default.Notifications
     var showBottomSheet by remember { mutableStateOf(false) }
 
     fabAction.value = {
         showBottomSheet = true
     }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -107,25 +136,33 @@ fun AlarmScreen(
                 showBottomSheet = false
                 floatingFlag.value = false
             },
-            onOKey = {
+            onOKey = { startTime, endTime ->
                 showBottomSheet = false
                 floatingFlag.value = false
+                startDuration.value = startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                endDuration.value = endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
                 dayAndTime.value = "${startDuration.value}, ${endDuration.value}"
             },
             startDuration = startDuration,
-            endDuration = endDuration
+            endDuration = endDuration,
+            viewModel = viewModel
         )
     }
 }
+
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SettingsBDS(
     onClose: () -> Unit,
-    onOKey: () -> Unit,
+    onOKey: (LocalTime, LocalTime) -> Unit,
     startDuration: MutableState<String>,
-    endDuration: MutableState<String>
+    endDuration: MutableState<String>,
+    viewModel: AlarmViewModel
 ) {
     var showBottomSheet by remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState()
@@ -143,61 +180,69 @@ fun SettingsBDS(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                AddNewAlertBottomSheet(onClose, onOKey, startDuration, endDuration)
+                AddNewAlertBottomSheet(onClose, onOKey, startDuration, endDuration,viewModel)
             }
         }
     }
 }
 
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddNewAlertBottomSheet(
     onClose: () -> Unit,
-    onOKey: () -> Unit,
+    onOKey: (LocalTime, LocalTime) -> Unit,
     startDuration: MutableState<String>,
-    endDuration: MutableState<String>
+    endDuration: MutableState<String>,
+    alarmViewModel: AlarmViewModel
 ) {
     var selectedOption by remember { mutableStateOf("Alarm") }
     val interactionSource = remember { MutableInteractionSource() }
     val interactionSource2 = remember { MutableInteractionSource() }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+    var startTime by remember { mutableStateOf(LocalTime.now().plusMinutes(1)) }
+    var endTime by remember { mutableStateOf(LocalTime.now().plusMinutes(2)) }
+    var errorMessage by remember { mutableStateOf<String?>(null) } // متغير لحفظ الخطأ
+    val cotext=LocalContext.current
+    val alarmScheduler = AlarmScheduler(cotext)
 
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { interaction ->
             if (interaction is PressInteraction.Press) {
-                showDatePicker = true
+                showStartTimePicker = true
             }
         }
     }
     LaunchedEffect(interactionSource2) {
         interactionSource2.interactions.collect { interaction ->
             if (interaction is PressInteraction.Press) {
-                showTimePicker = true
+                showEndTimePicker = true
             }
         }
     }
-
     Column(
-        modifier = Modifier.padding(16.dp).fillMaxWidth()
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
     ) {
         Text("Add New Alert", style = MaterialTheme.typography.titleLarge, color = Color.White)
 
-        Text("Start duration", color = Color.White)
-        ClickableOutlinedTextField(startDuration.value, interactionSource, Icons.Default.AccessTime)
+        Text("Start Time", color = Color.White)
+        ClickableOutlinedTextField(startDuration.value,interactionSource ,{ showStartTimePicker = true }, Icons.Default.AccessTime)
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text("End duration", color = Color.White)
-        ClickableOutlinedTextField(endDuration.value, interactionSource2, Icons.Default.Timer)
+        Text("End Time", color = Color.White)
+        ClickableOutlinedTextField(endDuration.value, interactionSource2,{ showEndTimePicker = true }, Icons.Default.Timer)
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             Text("Notify me by", fontSize = 14.sp, color = Color.White)
             Row {
@@ -211,13 +256,42 @@ fun AddNewAlertBottomSheet(
             }
         }
 
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(it, color = Color.Red, fontSize = 14.sp)
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             Button(
-                onClick = { onOKey() },
+                onClick = {
+                    when {
+                        startTime.isBefore(LocalTime.now()) -> {
+                            errorMessage = "Start time must be in the future!"
+                        }
+                        endTime.isBefore(startTime) -> {
+                            errorMessage = "End time must be after start time!"
+                        }
+                        else -> {
+                            errorMessage = null
+                            val alarmEntity = AlarmEntity(
+                                id = System.currentTimeMillis().toInt(),
+                                time = startTime,
+                                duration = java.time.Duration.between(startTime, endTime).toMinutes().toInt()*60,
+
+                                label = "Scheduled Alarm"
+                            )
+                            alarmViewModel .addAlarm(alarmEntity)
+                            alarmScheduler.scheduleAlarm(alarmEntity)
+                            onOKey(startTime, endTime)
+                            Log.d("TAG", "AddNewAlertBottomSheet:${startTime},${endTime} , ${java.time.Duration.between(startTime, endTime).toMinutes().toInt()*60} ")
+                        }
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
@@ -242,86 +316,32 @@ fun AddNewAlertBottomSheet(
         }
     }
 
-    if (showDatePicker) {
-        DatePickerExample(onDismiss = { showDatePicker = false }, startDuration = startDuration)
-    }
-
-    if (showTimePicker) {
-        TimePickerExample(onDismiss = { showTimePicker = false }, endDuration = endDuration)
-    }
-}
-
-
-@Composable
-fun ClickableOutlinedTextField(
-    value: String,
-    interactionSource: MutableInteractionSource,
-    icon: ImageVector
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        readOnly = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        interactionSource = interactionSource,
-        leadingIcon = { Icon(imageVector = icon, contentDescription = null, tint = Color.White) },
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            textColor = Color.White,
-            disabledTextColor = Color.White,
-            focusedBorderColor = Color.White,
-            unfocusedBorderColor = Color.White,
-            disabledBorderColor = Color.White
-        ),
-
-        )
-
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun DatePickerExample(onDismiss: () -> Unit, startDuration: MutableState<String>) {
-    val dialogState = rememberMaterialDialogState()
-    var pickedDay by remember { mutableStateOf(LocalDate.now()) }
-
-    val formattedDate by remember {
-        derivedStateOf {
-            DateTimeFormatter.ofPattern("dd MMM yyyy").format(pickedDay)
+    if (showStartTimePicker) {
+        TimePickerExample(onDismiss = { showStartTimePicker = false }, selectedTime = startTime) {
+            startTime = it
+            startDuration.value = it.format(DateTimeFormatter.ofPattern("hh:mm a"))
         }
     }
 
-    LaunchedEffect(Unit) { dialogState.show() }
-
-    MaterialDialog(dialogState = dialogState, buttons = {
-        positiveButton("OK") {
-            startDuration.value = formattedDate
-            onDismiss()
+    if (showEndTimePicker) {
+        TimePickerExample(onDismiss = { showEndTimePicker = false }, selectedTime = endTime) {
+            endTime = it
+            endDuration.value = it.format(DateTimeFormatter.ofPattern("hh:mm a"))
         }
-        negativeButton("Cancel") { onDismiss() }
-    }) {
-        datepicker(initialDate = pickedDay, title = "Pick a date") { pickedDay = it }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TimePickerExample(onDismiss: () -> Unit, endDuration: MutableState<String>) {
+fun TimePickerExample(onDismiss: () -> Unit, selectedTime: LocalTime, onTimeSelected: (LocalTime) -> Unit) {
     val dialogState = rememberMaterialDialogState()
-    var pickedTime by remember { mutableStateOf(LocalTime.now()) }
-
-    val formattedTime by remember {
-        derivedStateOf {
-            DateTimeFormatter.ofPattern("hh:mm a").format(pickedTime)
-        }
-    }
+    var pickedTime by remember { mutableStateOf(selectedTime) }
 
     LaunchedEffect(Unit) { dialogState.show() }
 
     MaterialDialog(dialogState = dialogState, buttons = {
         positiveButton("OK") {
-            endDuration.value = formattedTime
+            onTimeSelected(pickedTime)
             onDismiss()
         }
         negativeButton("Cancel") { onDismiss() }
@@ -331,6 +351,32 @@ fun TimePickerExample(onDismiss: () -> Unit, endDuration: MutableState<String>) 
 }
 
 
+@Composable
+fun ClickableOutlinedTextField(
+    value: String,
+    interactionSource: MutableInteractionSource,
+    onClick: () -> Unit,
+    icon: ImageVector
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        readOnly = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { onClick() },
+        interactionSource = interactionSource,
+        leadingIcon = { Icon(imageVector = icon, contentDescription = null, tint = Color.White) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            textColor = Color.White,
+            disabledTextColor = Color.White,
+            focusedBorderColor = Color.White,
+            unfocusedBorderColor = Color.White,
+            disabledBorderColor = Color.White
+        ),
+    )
+}
 
 @Composable
 fun AlarmCard(

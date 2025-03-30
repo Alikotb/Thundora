@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.thundora.model.pojos.api.AlarmEntity
 import com.example.thundora.model.pojos.api.Weather
 
-@Database(entities = [Weather::class], version = 1)
+@Database(entities =  [AlarmEntity::class, Weather::class], version =2 )
  abstract class WeatherDataBase : RoomDatabase(){
     abstract fun getForecastDao(): Dao
     companion object{
