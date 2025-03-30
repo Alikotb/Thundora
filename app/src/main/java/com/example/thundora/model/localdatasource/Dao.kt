@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.thundora.model.pojos.api.AlarmEntity
+import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Weather
 import kotlinx.coroutines.flow.Flow
 
@@ -37,5 +38,10 @@ interface Dao {
 
     @Update
     suspend fun updateAlarm(alarm: AlarmEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHome(home: ApiResponse)
+    @Query("SELECT * FROM api_response_table")
+    fun getHome(): Flow<ApiResponse>
 }
 

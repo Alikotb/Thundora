@@ -26,6 +26,8 @@ interface IRepository {
     suspend fun insertAlarm(alarm: AlarmEntity)
     suspend fun deleteAlarmById(alarmId: Int)
     suspend fun updateAlarm(alarm: AlarmEntity)
+    suspend fun insertHome(home: ApiResponse)
+    fun getHome(): Flow<ApiResponse>
     fun <T> saveData(key: String, value: T)
     fun <T> fetchData(key: String, defaultValue: T): T
 }

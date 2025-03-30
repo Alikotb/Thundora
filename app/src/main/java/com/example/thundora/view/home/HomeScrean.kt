@@ -2,6 +2,7 @@
 
 package com.example.thundora.view.home
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -88,6 +90,7 @@ import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getBackgroundColor
 import com.example.thundora.view.utilies.getIcon
 import com.example.thundora.view.utilies.getWeatherColors
+import com.example.thundora.view.utilies.isInternetAvailable
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -129,6 +132,14 @@ fun HomeScreen(
     var dataPoints: MutableList<Float> = mutableListOf()
     var hourlyData: MutableList<String> = mutableListOf()
 
+    LaunchedEffect(Unit) {
+        if (isInternetAvailable()) {
+            viewModel.fetchSettings()
+            viewModel.getForecast()
+        } else {
+            viewModel.getForecastFromLocal()
+        }
+    }
 
     when (apiForecast) {
         is Response.Success -> {

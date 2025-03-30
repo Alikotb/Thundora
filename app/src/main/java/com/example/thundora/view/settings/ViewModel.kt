@@ -39,7 +39,10 @@ class SettingsViewModel(private val repository: Repository) : ViewModel() {
     val selectedTempUnit: StateFlow<String> = _selectedTempUnit
 
     private val _selectedLocation =
-        MutableStateFlow(repository.fetchData(SharedKeys.LOCATION.toString(), "GPS"))
+        if (_selectedLanguage.value == "English")
+            MutableStateFlow(repository.fetchData(SharedKeys.LOCATION.toString(), "GPS"))
+        else
+             MutableStateFlow(repository.fetchData(SharedKeys.LOCATION.toString(), "جي بي اس"))
     val selectedLocation: StateFlow<String> = _selectedLocation
 
     private val _selectedWindSpeed =

@@ -13,6 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.thundora.model.pojos.view.ScreensRout
+import com.example.thundora.model.pojos.view.SharedKeys
+import com.example.thundora.model.sharedpreference.SharedPreference
 import com.example.thundora.view.alarm.AlarmScreen
 import com.example.thundora.view.favorite.DetailsScreen
 import com.example.thundora.view.favorite.FavoriteScreen
@@ -31,12 +33,21 @@ fun SetUpNavHost(
     fabIcon: MutableState<ImageVector>,
     fabAction: MutableState<() -> Unit>
 ) {
+
     NavHost(
         navController = navController,
-        startDestination = ScreensRout.Splash
+        startDestination = if (SharedPreference.getInstance()
+                .fetchData(SharedKeys.RESTARTED_FLAG.toString(), false)
+        ) {
+            ScreensRout.Home
+        } else {
+            ScreensRout.Splash
+        }
+
     ) {
         composable<ScreensRout.Splash> {
             Splash(flag) {
+                SharedPreference.getInstance().saveData(SharedKeys.RESTARTED_FLAG.toString(), true)
                 navController.popBackStack()
                 navController.navigate(ScreensRout.Home)
             }

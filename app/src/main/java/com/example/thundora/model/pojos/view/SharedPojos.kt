@@ -6,5 +6,6 @@ enum class SharedKeys {
     SPEED_UNIT,
     LOCATION,
     LAT,
-    LON
+    LON,
+    RESTARTED_FLAG
 }

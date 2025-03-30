@@ -4,10 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.thundora.model.ApiResponseConverter
+import com.example.thundora.model.pojos.Converters
 import com.example.thundora.model.pojos.api.AlarmEntity
+import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Weather
 
-@Database(entities =  [AlarmEntity::class, Weather::class], version =2 )
+@Database(entities =  [AlarmEntity::class, Weather::class,ApiResponse::class], version =2 )
+@TypeConverters(ApiResponseConverter::class, Converters::class) // ✅ Add here
  abstract class WeatherDataBase : RoomDatabase(){
     abstract fun getForecastDao(): Dao
     companion object{

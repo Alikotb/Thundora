@@ -38,7 +38,7 @@ class Repository private constructor(private val remote: RemoteDataSource,privat
         val weatherFlow = getWeather(lat, lon, units,language)
         val forecastFlow = getForecast(lat, lon, units,language)
         return combine(weatherFlow, forecastFlow) { weather, forecast ->
-            ApiResponse(forecast, weather)
+            ApiResponse(1,forecast, weather)
         }
     }
 
@@ -80,6 +80,14 @@ class Repository private constructor(private val remote: RemoteDataSource,privat
 
     override suspend fun updateAlarm(alarm: AlarmEntity) {
         local.updateAlarm(alarm)
+    }
+
+    override suspend fun insertHome(home: ApiResponse) {
+        local.insertHome(home)
+    }
+
+    override fun getHome(): Flow<ApiResponse> {
+        return local.getHome()
     }
 
 

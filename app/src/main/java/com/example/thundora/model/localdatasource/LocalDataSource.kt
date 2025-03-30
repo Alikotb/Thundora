@@ -1,6 +1,7 @@
 package com.example.thundora.model.localdatasource
 
 import com.example.thundora.model.pojos.api.AlarmEntity
+import com.example.thundora.model.pojos.api.ApiResponse
 import com.example.thundora.model.pojos.api.Weather
 import com.example.thundora.model.sharedpreference.SharedPreference
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +46,12 @@ class LocalDataSource(private val dao: Dao, private val sharedPreference: Shared
 
     suspend fun updateAlarm(alarm: AlarmEntity) {
         dao.updateAlarm(alarm)
+    }
+    suspend fun insertHome(home: ApiResponse) {
+        dao.insertHome(home)
+    }
+    fun getHome(): Flow<ApiResponse> {
+        return dao.getHome()
     }
 
     fun <T> saveData(key: String, value: T) {

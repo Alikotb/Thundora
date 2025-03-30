@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
+import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
@@ -503,6 +504,9 @@ fun ContactImageIcon(imageRes: Int, contentDesc: String, onClick: () -> Unit) {
 }
 
 fun restartActivity(context: Context) {
+
+    SharedPreference.getInstance().saveData(SharedKeys.RESTARTED_FLAG.toString(),true)
+
     val intent = (context as? Activity)?.intent
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)

@@ -1,4 +1,5 @@
 package com.example.thundora.view.home.viewmodel
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thundora.model.pojos.api.ApiResponse
@@ -6,6 +7,7 @@ import com.example.thundora.model.pojos.api.Response
 import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.utils.getLanguage
+import com.example.thundora.model.utils.getTemperatureUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,17 +33,13 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
     private val _latitude = MutableStateFlow(0.0)
     private val _longitude = MutableStateFlow(0.0)
 
-    init {
-        fetchSettings()
-    }
 
-    private fun fetchSettings() {
+     fun fetchSettings() {
         _language.value = repo.fetchData(SharedKeys.LANGUAGE.toString(), "en")
-        _temperatureUnit.value = repo.fetchData(SharedKeys.DEGREE.toString(),"Celsius")
+        _temperatureUnit.value = repo.fetchData(SharedKeys.DEGREE.toString(), getTemperatureUnit("Celsius"))
         _units.value = repo.fetchData(SharedKeys.SPEED_UNIT.toString(), "metric")
         _latitude.value = repo.fetchData(SharedKeys.LAT.toString(), "0.0").toDouble()
         _longitude.value = repo.fetchData(SharedKeys.LON.toString(), "0.0").toDouble()
-        getForecast()
     }
 
     fun getForecast() {
@@ -51,15 +49,29 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
                 repo.getApiForecast(_latitude.value ,_longitude.value, _temperatureUnit.value,getLanguage( _language.value))
                     .catch {
                         _messageState.emit(it.message ?: "Unknown error")
-
                     }
                     .collect {apiForecast ->
-                         _forecast.emit(Response.Success(apiForecast))
-
+                        _forecast.emit(Response.Success(apiForecast))
+                        repo.insertHome(apiForecast)
                     }
             } catch (e: Exception) {
                 _messageState.emit(e.message ?: "Unknown error")
 
+            }
+        }
+    }
+    fun getForecastFromLocal() {
+        viewModelScope.launch {
+            try {
+                repo.getHome()
+                    .catch {
+                        _messageState.emit(it.message ?: "Unknown error")
+                        }
+                    .collect {
+                        _forecast.emit(Response.Success(it))
+                    }
+            } catch (e: Exception) {
+                _messageState.emit(e.message ?: "Unknown error")
             }
         }
     }

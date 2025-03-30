@@ -127,8 +127,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
 
 
-        if (sharedPref.fetchData(SharedKeys.LOCATION.toString(), "GPS") == "GPS") {
-
+        if (sharedPref.fetchData(SharedKeys.LOCATION.toString(), context.getString(R.string.gps)) == context.getString(R.string.gps)) {
             if (gpsLocation.checkPermission(context)) {
                 if (!isLocationEnabled(this)) {
 
