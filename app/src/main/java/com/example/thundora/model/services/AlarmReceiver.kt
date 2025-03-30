@@ -15,13 +15,16 @@ import com.example.thundora.MainActivity
 import com.example.thundora.R
 import com.example.thundora.model.localdatasource.LocalDataSource
 import com.example.thundora.model.localdatasource.WeatherDataBase
+import com.example.thundora.model.pojos.view.SharedKeys
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.model.utils.getWeatherNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -36,6 +39,14 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
         val id = intent?.getIntExtra("id", -1) ?: return
+        val repo =Repository.getInstance(
+            RemoteDataSource(ApiClient.weatherService),
+            LocalDataSource(
+                WeatherDataBase.getInstance(context).getForecastDao(),
+                SharedPreference.getInstance()
+            )
+        )
+
 
         when (intent.action) {
             "android.intent.action.ALARM_TRIGGERED" -> {
@@ -44,8 +55,20 @@ class AlarmReceiver : BroadcastReceiver() {
                 val alarmLabel = intent.getStringExtra("ALARM_LABEL") ?: "Thundora Alarm!"
                 val duration = intent.getIntExtra("ALARM_DURATION", 5)
 
-                playAlarmSound(context)
-                showCustomNotification(context, id, alarmLabel, duration)
+                CoroutineScope(Dispatchers.IO).launch {
+                   val  description=ApiClient.weatherService.
+                   getWeather(
+                        SharedPreference.getInstance().fetchData(SharedKeys.LAT.toString(), "0.0").toDouble()
+                        ,SharedPreference.getInstance().fetchData(SharedKeys.LON.toString(), "0.0").toDouble()
+                        ,"en"
+                        ,"metric"
+
+                    ).body()?.weather?.firstOrNull()?.icon?.getWeatherNotification() ?: "No weather update available 🌍"
+                    playAlarmSound(context)
+                    showCustomNotification(context, id, alarmLabel, duration,description)
+                }
+
+
             }
 
             "android.intent.action.STOP_ALARM" -> {
@@ -75,7 +98,13 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun showCustomNotification(context: Context, alarmId: Int, alarmLabel: String, duration: Int) {
+    private fun showCustomNotification(
+        context: Context,
+        alarmId: Int,
+        alarmLabel: String,
+        duration: Int,
+        asd: String?
+    ) {
         val channelId = "alarm_channel"
         val notificationManager = context.getSystemService(NotificationManager::class.java)
 
@@ -83,7 +112,7 @@ class AlarmReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(
                 channelId, "Alarms", NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Alarm Notifications"
+                description = asd?:"asd"
                 enableLights(true)
                 enableVibration(true)
                 setSound(null, null)
@@ -112,7 +141,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.notifications)
             .setContentTitle(alarmLabel)
-            .setContentText("Your alarm is ringing!")
+            .setContentText(asd)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(mainPendingIntent)
             .setAutoCancel(false)

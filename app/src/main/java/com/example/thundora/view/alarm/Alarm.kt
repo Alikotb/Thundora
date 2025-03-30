@@ -171,7 +171,35 @@ fun AlarmScreen(
                     )
                 }
             } else {
-                Text(text = "No alarms set")
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = colorResource(id = R.color.deep_blue)),
+                ) {
+                    Text(text = "No alarms set")
+                }
+
+                if (showBottomSheet) {
+                    SettingsBDS(
+                        onClose = {
+                            showBottomSheet = false
+                            floatingFlag.value = false
+                        },
+                        onOKey = { startTime, endTime ->
+                            showBottomSheet = false
+                            floatingFlag.value = false
+                            startDuration.value =
+                                startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                            endDuration.value =
+                                endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                            dayAndTime.value = "${startDuration.value}, ${endDuration.value}"
+                        },
+                        startDuration = startDuration,
+                        endDuration = endDuration,
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }

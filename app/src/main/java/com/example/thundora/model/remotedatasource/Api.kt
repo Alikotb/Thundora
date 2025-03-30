@@ -8,13 +8,6 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface WeatherService {
-    @GET("data/2.5/weather")
-    suspend fun getWeather(
-        @Query("lat") lat: Double,
-        @Query("lon") lon: Double,
-        @Query("lang") lang : String="en",
-        @Query("units") units: String = "metric"
-    ): Response<Weather>
 
     @GET("data/2.5/forecast")
     suspend fun getForecast(
@@ -36,5 +29,23 @@ interface WeatherService {
         @Query("lon") lon: Double,
         @Query("limit") limit: Int = 1
     ): Response<List<GeocodingResponseItem>>
+
+
+//    @GET("data/2.5/weather")
+//     fun getWeatherForNotification(
+//        @Query("lat") lat: Double,
+//        @Query("lon") lon: Double,
+//        @Query("lang") lang : String="en",
+//        @Query("units") units: String = "metric"
+//    ): Weather
+
+
+    @GET("data/2.5/weather")
+    suspend fun getWeather(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("lang") lang : String="en",
+        @Query("units") units: String = "metric"
+    ): Response<Weather>
 
 }
