@@ -45,7 +45,6 @@ class HomeViewModel(private val repo: Repository) : ViewModel() {
     fun getForecast() {
         viewModelScope.launch {
             try {
-
                 repo.getApiForecast(_latitude.value ,_longitude.value, _temperatureUnit.value,getLanguage( _language.value))
                     .catch {
                         _messageState.emit(it.message ?: "Unknown error")

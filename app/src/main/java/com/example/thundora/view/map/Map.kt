@@ -1,6 +1,5 @@
 package com.example.thundora.view.map
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,19 +42,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.pojos.api.Response
+import com.example.thundora.model.localdatasource.WeatherDataBase
 import com.example.thundora.model.remotedatasource.ApiClient
 import com.example.thundora.model.remotedatasource.RemoteDataSource
 import com.example.thundora.model.repositary.Repository
 import com.example.thundora.model.sharedpreference.SharedPreference
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.maps.android.compose.CameraPositionState
@@ -63,16 +66,8 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.view.utilies.LoadingScreen
 
 
 @Composable
@@ -82,12 +77,10 @@ fun MapScreen(
     navToFavorite: () -> Unit,
 ) {
     floatingFlag.value = false
-
     val context = LocalContext.current
-    val client = remember { Places.createClient(context) }
     val viewModel: MapViewModel = viewModel(
         factory = MapFactory(
-            client,
+            Places.createClient(context),
             Repository.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
@@ -98,89 +91,54 @@ fun MapScreen(
         )
     )
 
-
-    val locationState by viewModel.locationState.collectAsStateWithLifecycle()
-    val latitude by viewModel.latitude.collectAsStateWithLifecycle()
-    val longitude by viewModel.longitude.collectAsStateWithLifecycle()
-
-    val markerState = remember { mutableStateOf(MarkerState(LatLng(latitude, longitude))) }
-    val selectedPrediction = remember { mutableStateOf<AutocompletePrediction?>(null) }
-
-
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(markerState.value.position, 10f)
+        position = CameraPosition.fromLatLngZoom(
+            viewModel.markerState.value.position,
+            12f
+        )
     }
 
-    LaunchedEffect(selectedPrediction.value) {
-        viewModel.getCityLocation(selectedPrediction.value?.getPrimaryText(null).toString())
+    LaunchedEffect(Unit) {
+        cameraPositionState.position = CameraPosition.fromLatLngZoom(
+            viewModel.markerState.value.position,
+            cameraPositionState.position.zoom
+        )
     }
 
-    when (locationState) {
-        is Response.Loading -> {
-            LoadingScreen()
-        }
-
-        is Response.Success -> {
-            val data = (locationState as Response.Success).data
-            if (data.lat != 53.3201094 && data.lon != -8.567809712252107) {
-                markerState.value.position = LatLng(data.lat, data.lon)
-
-            }
-            LaunchedEffect(markerState.value) {
-                cameraPositionState.position =
-                    CameraPosition.fromLatLngZoom(markerState.value.position, 15f)
-            }
-            MapBranch(
-                navToHome = {
-                    navToHome()
-                },
-                navToFavorite = navToFavorite,
-                viewModel = viewModel,
-                markerState = markerState,
-                cameraPositionState = cameraPositionState,
-                selectedPrediction = selectedPrediction,
-            )
-        }
-
-        is Response.Error -> {
-            Text(text = "Error: ${(locationState as Response.Error).message}")
-        }
-    }
+    MapBranch(
+        navToHome = navToHome,
+        navToFavorite = navToFavorite,
+        viewModel = viewModel,
+        cameraPositionState = cameraPositionState
+    )
 }
 
-@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MapBranch(
     navToHome: () -> Unit,
     navToFavorite: () -> Unit,
     viewModel: MapViewModel,
-    markerState: MutableState<MarkerState>,
-    cameraPositionState: CameraPositionState,
-    selectedPrediction: MutableState<AutocompletePrediction?>,
-
-    ) {
+    cameraPositionState: CameraPositionState
+) {
     val scope = rememberCoroutineScope()
     val text = remember { mutableStateOf("") }
     val predictionsState = remember { mutableStateOf(emptyList<AutocompletePrediction>()) }
     val isExpanded = remember { mutableStateOf(false) }
+    val markerState by viewModel.markerState.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         GoogleMap(
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 compassEnabled = false,
-                mapToolbarEnabled = false,
-
+                mapToolbarEnabled = false
             ),
             modifier = Modifier.fillMaxSize(),
-            onMapClick = {
-                markerState.value= MarkerState(it)
-
-            },
-            properties = MapProperties(mapType = MapType.HYBRID, isMyLocationEnabled = false),
+            onMapClick = { viewModel.updateMarkerPosition(it) },
+            properties = MapProperties(mapType = MapType.HYBRID),
             cameraPositionState = cameraPositionState
         ) {
-            Marker(state = markerState.value, title = "Location Marker")
+            Marker(state = markerState, title = "Location Marker")
         }
 
         Column(
@@ -196,11 +154,9 @@ fun MapBranch(
                     text.value = query
                     isExpanded.value = true
                     scope.launch {
-                        predictionsState.value =
-                            viewModel.getAddressPredictions(inputString = query)
+                        predictionsState.value = viewModel.getAddressPredictions(query)
                     }
-                },
-                label = {
+                },label = {
                     Text(
                         stringResource(R.string.search),
                         color = colorResource(R.color.blue_1200)
@@ -239,10 +195,17 @@ fun MapBranch(
                                     .padding(vertical = 12.dp, horizontal = 8.dp)
                                     .clickable {
                                         text.value = prediction.getFullText(null).toString()
-                                        selectedPrediction.value = prediction
                                         isExpanded.value = false
+                                        viewModel.getPlaceDetails(prediction.placeId) { latLng ->
+                                            latLng?.let {
+                                                scope.launch {
+                                                    cameraPositionState.animate(
+                                                        CameraUpdateFactory.newLatLngZoom(it, 12f)
+                                                    )
+                                                }
+                                            }
+                                        }
                                     },
-                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Place,
@@ -266,21 +229,17 @@ fun MapBranch(
 
     ExpandableFAB(
         navToHome = {
-            val position = markerState.value.position
-            SharedPreference.getInstance()
-                .saveData(SharedKeys.LAT.toString(), position.latitude.toString())
-            SharedPreference.getInstance()
-                .saveData(SharedKeys.LON.toString(), position.longitude.toString())
             navToHome()
         },
         navToFavorite = {
-            val position = markerState.value.position
-            viewModel.addFavoriteCity(position.latitude, position.longitude)
+            viewModel.addFavoriteCity(
+                markerState.position.latitude,
+                markerState.position.longitude
+            )
             navToFavorite()
         }
     )
 }
-
 
 @Composable
 fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
@@ -330,29 +289,31 @@ fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
             }
         }
 
-            ExtendedFloatingActionButton(
-                onClick = { isExpanded.value = !isExpanded.value },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 128.dp),
-                containerColor = colorResource(R.color.blue_1200),
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.toggle_fab),
-                    tint = Color.White
-                )
-                Text(
-                    text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(
-                        R.string.add_item
-                    ),
-                    color = Color.White,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-
+        ExtendedFloatingActionButton(
+            onClick = { isExpanded.value = !isExpanded.value },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 128.dp),
+            containerColor = colorResource(R.color.blue_1200),
+            shape = CircleShape
+        ) {
+            Icon(
+                imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
+                contentDescription = stringResource(R.string.toggle_fab),
+                tint = Color.White
+            )
+            Text(
+                text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(
+                    R.string.add_item
+                ),
+                color = Color.White,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
 
+    }
+
 }
+
+
 
