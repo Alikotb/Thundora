@@ -1,6 +1,10 @@
 package com.example.thundora.view.map
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,18 +18,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -45,6 +49,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -156,7 +161,7 @@ fun MapBranch(
                     scope.launch {
                         predictionsState.value = viewModel.getAddressPredictions(query)
                     }
-                },label = {
+                }, label = {
                     Text(
                         stringResource(R.string.search),
                         color = colorResource(R.color.blue_1200)
@@ -225,92 +230,132 @@ fun MapBranch(
                 }
             }
         }
+        ExpandableFAB(text,
+            navToHome = {
+                viewModel.setHomeLocation(markerState.position)
+                navToHome()
+            },
+            navToFavorite = {
+                viewModel.addFavoriteCity(
+                    markerState.position.latitude,
+                    markerState.position.longitude
+                )
+                navToFavorite()
+            }
+        )
     }
-
-    ExpandableFAB(
-        navToHome = {
-            navToHome()
-        },
-        navToFavorite = {
-            viewModel.addFavoriteCity(
-                markerState.position.latitude,
-                markerState.position.longitude
-            )
-            navToFavorite()
-        }
-    )
 }
 
 @Composable
-fun ExpandableFAB(navToHome: () -> Unit, navToFavorite: () -> Unit) {
+fun ExpandableFAB(text: MutableState<String>, navToHome: () -> Unit, navToFavorite: () -> Unit) {
     val isExpanded = remember { mutableStateOf(false) }
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomStart
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 32.dp),
+        contentAlignment = Alignment.BottomCenter
+
     ) {
-        Column(
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(start = 24.dp, bottom = 128.dp)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            AnimatedVisibility(visible = isExpanded.value) {
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(128.dp)
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 12.dp
+                    )
+            ) {
+
+                Text(
+                    text = text.value,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(bottom = 24.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                ExtendedFloatingActionButton(
+                    onClick = { isExpanded.value = !isExpanded.value },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    containerColor = colorResource(R.color.blue_1200),
+                    icon = {
+                        Icon(
+                            imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
+                            tint = Color.White,
+                            contentDescription = "Toggle"
+                        )
+                    },
+                    text = {
+                        Text(
+                            if (isExpanded.value) "Close" else "Pick",
+                            color = Color.White
+                        )
+                    },
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp)
+                )
+
+                this@Card.AnimatedVisibility(
+                    visible = isExpanded.value,
+                    enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                    exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 8.dp)
                 ) {
                     FloatingActionButton(
                         onClick = {
-
                             navToFavorite()
+                            isExpanded.value = false
                         },
                         containerColor = colorResource(R.color.blue_1200),
-                        shape = CircleShape
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp)
                     ) {
                         Icon(
                             Icons.Default.Favorite,
-                            contentDescription = stringResource(R.string.favorite0),
+                            contentDescription = "Favorite",
                             tint = Color.White
                         )
                     }
+                }
+
+                this@Card.AnimatedVisibility(
+                    visible = isExpanded.value,
+                    enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+                    exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 8.dp)
+                ) {
                     FloatingActionButton(
                         onClick = {
                             navToHome()
+                            isExpanded.value = false
                         },
                         containerColor = colorResource(R.color.blue_1200),
-                        shape = CircleShape
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp)
                     ) {
                         Icon(
-                            Icons.Default.LocationOn,
-                            contentDescription = stringResource(R.string.location0),
+                            Icons.Default.Home,
+                            contentDescription = "Home",
                             tint = Color.White
                         )
                     }
                 }
             }
         }
-
-        ExtendedFloatingActionButton(
-            onClick = { isExpanded.value = !isExpanded.value },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 128.dp),
-            containerColor = colorResource(R.color.blue_1200),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = if (isExpanded.value) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = stringResource(R.string.toggle_fab),
-                tint = Color.White
-            )
-            Text(
-                text = if (isExpanded.value) stringResource(R.string.close_) else stringResource(
-                    R.string.add_item
-                ),
-                color = Color.White,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
     }
 
 }

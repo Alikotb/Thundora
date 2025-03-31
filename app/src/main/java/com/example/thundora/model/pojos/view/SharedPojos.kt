@@ -7,5 +7,7 @@ enum class SharedKeys {
     LOCATION,
     LAT,
     LON,
-    RESTARTED_FLAG
+    RESTARTED_FLAG,
+    HOME_LAT,
+    HOME_LON
 }

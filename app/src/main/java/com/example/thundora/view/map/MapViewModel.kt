@@ -25,20 +25,31 @@ class MapViewModel(
     private val client: PlacesClient,
     private val repo: Repository
 ) : ViewModel() {
-    private val _markerState = MutableStateFlow(
-        MarkerState(
-            LatLng(
-                repo.fetchData(SharedKeys.LAT.toString(), "33.0").toDouble(),
-                repo.fetchData(SharedKeys.LON.toString(), "35.0").toDouble()
-            )
-        )
-    )
+    private val _markerState = MutableStateFlow(MarkerState(LatLng(0.0, 0.0)))
     val markerState: StateFlow<MarkerState> = _markerState
+
+    private val _homeLocation = MutableStateFlow(LatLng(0.0, 0.0))
+
+    init {
+        loadHomeLocation()
+    }
+
+    private fun loadHomeLocation() {
+        val lat = repo.fetchData(SharedKeys.HOME_LAT.toString(), "33.0").toDouble()
+        val lon = repo.fetchData(SharedKeys.HOME_LON.toString(), "35.0").toDouble()
+        _homeLocation.value = LatLng(lat, lon)
+        _markerState.value = MarkerState(LatLng(lat, lon))
+    }
 
     fun updateMarkerPosition(latLng: LatLng) {
         _markerState.value = MarkerState(latLng)
-        repo.saveData(SharedKeys.LAT.toString(), latLng.latitude.toString())
-        repo.saveData(SharedKeys.LON.toString(), latLng.longitude.toString())
+    }
+
+    fun setHomeLocation(latLng: LatLng) {
+        _homeLocation.value = latLng
+        repo.saveData(SharedKeys.HOME_LAT.toString(), latLng.latitude.toString())
+        repo.saveData(SharedKeys.HOME_LON.toString(), latLng.longitude.toString())
+        _markerState.value = MarkerState(latLng)
     }
 
     suspend fun getAddressPredictions(
@@ -79,7 +90,10 @@ class MapViewModel(
         viewModelScope.launch {
             repo.getWeather(lat, lon, "metric", "en")
                 .catch { e -> Log.e("MapViewModel", "Error adding favorite", e) }
-                .collect { weather -> repo.addWeather(weather) }
+                .collect { weather ->
+                    repo.addWeather(weather)
+
+                }
         }
     }
 }

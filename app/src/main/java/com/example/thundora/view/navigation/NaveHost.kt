@@ -64,6 +64,7 @@ fun SetUpNavHost(
         }
         composable<ScreensRout.Favorite> {
             floatingFlag.value = true
+            flag.value = true
             fabIcon.value = Icons.Default.Favorite
             fabAction.value = {
                 navController.navigate(ScreensRout.Map)
@@ -83,6 +84,7 @@ fun SetUpNavHost(
         }
 
         composable<ScreensRout.Map> {
+            flag.value = false
             floatingFlag.value = false
             fabIcon.value = Icons.Default.Favorite
             fabAction.value = { }

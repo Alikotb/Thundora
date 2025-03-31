@@ -102,8 +102,8 @@ class SettingsViewModel(private val repository: Repository) : ViewModel() {
 
     fun setLocation(latitude: Double, longitude: Double) {
         viewModelScope.launch {
-            repository.saveData(SharedKeys.LAT.toString(), latitude.toString())
-            repository.saveData(SharedKeys.LON.toString(), longitude.toString())
+            repository.saveData(SharedKeys.HOME_LAT.toString(), latitude.toString())
+            repository.saveData(SharedKeys.HOME_LON.toString(), longitude.toString())
         }
     }
 

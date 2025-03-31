@@ -181,8 +181,8 @@ class MainActivity : ComponentActivity() {
                     try {
                         val location = getLocation(context)
                         location?.let {
-                            sharedPref.saveData(SharedKeys.LAT.toString(), it.latitude.toString())
-                            sharedPref.saveData(SharedKeys.LON.toString(), it.longitude.toString())
+                            sharedPref.saveData(SharedKeys.HOME_LAT.toString(), it.latitude.toString())
+                            sharedPref.saveData(SharedKeys.HOME_LON.toString(), it.longitude.toString())
                         } ?: run {
                             Toast.makeText(context, "Unable to get location!", Toast.LENGTH_SHORT)
                                 .show()
