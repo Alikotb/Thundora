@@ -12,9 +12,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.thundora.model.pojos.view.ScreensRout
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.domain.model.view.ScreensRout
+import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.view.alarm.AlarmScreen
 import com.example.thundora.view.favorite.DetailsScreen
 import com.example.thundora.view.favorite.FavoriteScreen

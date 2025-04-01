@@ -44,14 +44,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.sharedpreference.SharedPreference
-import com.example.thundora.model.utils.getTemperatureUnit
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.utils.getTemperatureUnit
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.map.GPSLocation.getLocation
@@ -64,7 +64,7 @@ fun SettingScreen(floatingFlag: MutableState<Boolean>, navToMap: () -> Unit) {
 
     val viewModel: SettingsViewModel = viewModel(
         factory = SettingsFactory(
-            Repository.getInstance(
+            RepositoryImpl.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
                     WeatherDataBase.getInstance(
@@ -317,7 +317,6 @@ fun LocationSelectionChips(viewModel: SettingsViewModel, navToMap: () -> Unit) {
                                                     viewModel.setLocation(it.latitude, it.longitude)
                                                 }
                                             }
-                                        } else {
                                         }
                                     } catch (e: Exception) {
                                     }

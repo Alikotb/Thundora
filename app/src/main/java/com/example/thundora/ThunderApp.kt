@@ -1,7 +1,7 @@
 package com.example.thundora
 
 import android.app.Application
-import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 

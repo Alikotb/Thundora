@@ -55,13 +55,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.sharedpreference.SharedPreference
-import com.example.thundora.view.utilies.Empty
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.libraries.places.api.Places
@@ -87,7 +86,7 @@ fun MapScreen(
     val viewModel: MapViewModel = viewModel(
         factory = MapFactory(
             Places.createClient(context),
-            Repository.getInstance(
+            RepositoryImpl.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
                     WeatherDataBase.getInstance(context).getForecastDao(),
@@ -358,7 +357,6 @@ fun ExpandableFAB(text: MutableState<String>, navToHome: () -> Unit, navToFavori
             }
         }
     }
-
 }
 
 

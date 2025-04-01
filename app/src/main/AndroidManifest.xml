@@ -32,7 +32,7 @@
 <!--            </intent-filter>-->
 <!--        </receiver>-->
         <receiver
-            android:name=".model.services.AlarmReceiver"
+            android:name=".services.AlarmReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.ALARM_TRIGGERED" />

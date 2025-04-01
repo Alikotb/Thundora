@@ -36,32 +36,32 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.pojos.api.Weather
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.sharedpreference.SharedPreference
-import com.example.thundora.model.utils.CountryHelper
-import com.example.thundora.model.utils.DateTimeHelper
-import com.example.thundora.model.utils.formatNumberBasedOnLanguage
-import com.example.thundora.model.utils.getDegree
-import com.example.thundora.model.utils.getLanguage
-import com.example.thundora.model.utils.getWindSpeed
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.domain.model.api.Response
+import com.example.thundora.domain.model.api.Weather
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.utils.CountryHelper
+import com.example.thundora.utils.DateTimeHelper
+import com.example.thundora.utils.formatNumberBasedOnLanguage
+import com.example.thundora.utils.getDegree
+import com.example.thundora.utils.getLanguage
+import com.example.thundora.utils.getWindSpeed
 import com.example.thundora.view.favorite.viewModel.FavoriteFactory
 import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
 import com.example.thundora.view.home.WeatherInfo
-import com.example.thundora.view.utilies.getIcon
-import com.example.thundora.view.utilies.isInternetAvailable
+import com.example.thundora.view.components.getIcon
+import com.example.thundora.view.components.isInternetAvailable
 
 @Composable
 fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double, lon: Double) {
     floatingFlag.value = false
     val viewModel: FavoriteViewModel = viewModel(
         factory = FavoriteFactory(
-            Repository.getInstance(
+            RepositoryImpl.getInstance(
                 RemoteDataSource(
                     ApiClient.weatherService
                 ),
@@ -83,7 +83,7 @@ fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double
         if (isInternetAvailable()) {
             viewModel.getFavoriteCityApi(city, lat, lon)
         } else {
-            viewModel.getFavoriteCityRomm(city)
+            viewModel.getFavoriteCityRoom(city)
         }
 
     }

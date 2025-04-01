@@ -8,7 +8,6 @@ package com.example.thundora.view.alarm
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,11 +28,17 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.OutlinedTextField
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -74,26 +79,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.pojos.api.AlarmEntity
-import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.services.AlarmScheduler
-import com.example.thundora.model.sharedpreference.SharedPreference
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.domain.model.api.AlarmEntity
+import com.example.thundora.domain.model.api.Response
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.services.AlarmScheduler
+import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmFactory
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmViewModel
 import com.example.thundora.view.favorite.SwipeToDeleteContainer
-import com.example.thundora.view.utilies.AlarmLottie
-import com.example.thundora.view.utilies.Empty
-import com.example.thundora.view.utilies.LoadingScreen
+import com.example.thundora.view.components.AlarmLottie
+import com.example.thundora.view.components.Empty
+import com.example.thundora.view.components.LoadingScreen
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -105,12 +111,13 @@ fun AlarmScreen(
     fabIcon: MutableState<ImageVector>,
     fabAction: MutableState<() -> Unit>
 ) {
-    val startDuration = remember { mutableStateOf("Start duration") }
-    val endDuration = remember { mutableStateOf("End duration") }
+    val ctx = LocalContext.current
+    val startDuration = remember { mutableStateOf(ctx.getString(R.string.start_duration)) }
+    val endDuration = remember { mutableStateOf(ctx.getString(R.string.end_duration)) }
     val dayAndTime = remember { mutableStateOf("${startDuration.value}, ${endDuration.value}") }
     val viewModel: AlarmViewModel = viewModel(
         factory = AlarmFactory(
-            Repository.getInstance(
+            RepositoryImpl.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
                     WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
@@ -201,6 +208,7 @@ fun AlarmScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PrintAlarms(data: List<AlarmEntity>, viewModel: AlarmViewModel) {
+    val ctx = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val alarmScheduler = AlarmScheduler(LocalContext.current)
@@ -240,8 +248,8 @@ fun PrintAlarms(data: List<AlarmEntity>, viewModel: AlarmViewModel) {
                         viewModel.deleteAlarmById(fav.id)
                         coroutineScope.launch {
                             val result = snackBarHostState.showSnackbar(
-                                message = "Alarm deleted",
-                                actionLabel = "Undo",
+                                message = ctx.getString(R.string.alarm_deleted),
+                                actionLabel = ctx.getString(R.string.undo),
                                 duration = SnackbarDuration.Short
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -287,7 +295,7 @@ fun SettingsBDS(
             sheetState = sheetState,
             containerColor = DarkBlue,
             dragHandle = { BottomSheetDefaults.DragHandle() },
-            modifier = Modifier.wrapContentHeight() // Prev
+            modifier = Modifier.wrapContentHeight()
         ) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = DarkBlue),
@@ -310,7 +318,8 @@ fun AddNewAlertBottomSheet(
     endDuration: MutableState<String>,
     alarmViewModel: AlarmViewModel
 ) {
-    var selectedOption by remember { mutableStateOf("Alarm") }
+    val context = LocalContext.current
+    var selectedOption by remember { mutableStateOf(context.getString(R.string.alarm)) }
     val interactionSource = remember { MutableInteractionSource() }
     val interactionSource2 = remember { MutableInteractionSource() }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -318,8 +327,7 @@ fun AddNewAlertBottomSheet(
     var startTime by remember { mutableStateOf(LocalTime.now().plusMinutes(1)) }
     var endTime by remember { mutableStateOf(LocalTime.now().plusMinutes(2)) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val cotext = LocalContext.current
-    val alarmScheduler = AlarmScheduler(cotext)
+    val alarmScheduler = AlarmScheduler(context)
 
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { interaction ->
@@ -371,16 +379,16 @@ fun AddNewAlertBottomSheet(
             Text("Notify me by", fontSize = 14.sp, color = Color.White)
             Row {
                 RadioButton(
-                    selected = selectedOption == "Alarm",
-                    onClick = { selectedOption = "Alarm" })
+                    selected = selectedOption == context.getString(R.string.alarm),
+                    onClick = { selectedOption = context.getString(R.string.alarm) })
                 Text("Alarm", color = Color.White)
 
                 Spacer(Modifier.width(8.dp))
 
                 RadioButton(
-                    selected = selectedOption == "Notification",
-                    onClick = { selectedOption = "Notification" })
-                Text("Notification", color = Color.White)
+                    selected = selectedOption == context.getString(R.string.notification),
+                    onClick = { selectedOption = context.getString(R.string.notification) })
+                Text(context.getString(R.string.notification), color = Color.White)
             }
         }
 
@@ -399,11 +407,13 @@ fun AddNewAlertBottomSheet(
                 onClick = {
                     when {
                         startTime.isBefore(LocalTime.now()) -> {
-                            errorMessage = "Start time must be in the future!"
+                            errorMessage =
+                                context.getString(R.string.start_time_must_be_in_the_future)
                         }
 
                         endTime.isBefore(startTime) -> {
-                            errorMessage = "End time must be after start time!"
+                            errorMessage = context.getString(R.string.start_time_must_be_in_the_future)
+
                         }
 
                         else -> {
@@ -411,23 +421,14 @@ fun AddNewAlertBottomSheet(
                             val alarmEntity = AlarmEntity(
                                 id = System.currentTimeMillis().toInt(),
                                 time = startTime,
-                                duration = java.time.Duration.between(startTime, endTime)
+                                duration = Duration.between(startTime, endTime)
                                     .toMinutes().toInt() * 60,
 
-                                label = "Thundora App"
+                                label = context.getString(R.string.thundora_app)
                             )
                             alarmViewModel.addAlarm(alarmEntity)
                             alarmScheduler.scheduleAlarm(alarmEntity)
                             onOKey(startTime, endTime)
-                            Log.d(
-                                "TAG",
-                                "AddNewAlertBottomSheet:${startTime},${endTime} , ${
-                                    java.time.Duration.between(
-                                        startTime,
-                                        endTime
-                                    ).toMinutes().toInt() * 60
-                                } "
-                            )
                         }
                     }
                 },
@@ -441,7 +442,7 @@ fun AddNewAlertBottomSheet(
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Save", color = Color.White)
+                Text(stringResource(R.string.save), color = Color.White)
             }
 
             Spacer(Modifier.width(16.dp))
@@ -458,7 +459,7 @@ fun AddNewAlertBottomSheet(
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Cancel", color = Color.White)
+                Text(stringResource(R.string.cancel), color = Color.White)
             }
         }
     }
@@ -491,13 +492,13 @@ fun TimePickerExample(
     LaunchedEffect(Unit) { dialogState.show() }
 
     MaterialDialog(dialogState = dialogState, buttons = {
-        positiveButton("OK") {
+        positiveButton(stringResource(R.string.ok)) {
             onTimeSelected(pickedTime)
             onDismiss()
         }
-        negativeButton("Cancel") { onDismiss() }
+        negativeButton(stringResource(R.string.cancel)) { onDismiss() }
     }) {
-        timepicker(initialTime = pickedTime, title = "Pick a time") { pickedTime = it }
+        timepicker(initialTime = pickedTime, title = stringResource(R.string.pick_a_time)) { pickedTime = it }
     }
 }
 
@@ -553,21 +554,21 @@ fun AlarmCard(time: String) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Starting Time: ${time.substringBefore(",")}",
+                    text = stringResource(R.string.starting_time) + time.substringBefore(","),
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "End Time: ${time.substringAfter(",")}",
+                    text = stringResource(R.string.end_time) +time.substringAfter(","),
                     fontSize = 14.sp,
                     color = Color.White
                 )
             }
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.offset(x = 12.dp) // Move it slightly to prevent overflow
+                modifier = Modifier.offset(x = 12.dp)
             ) {
                 AlarmLottie()
             }
@@ -575,46 +576,3 @@ fun AlarmCard(time: String) {
     }
 }
 
-
-
-//@Composable
-//fun AlarmCard(
-//    time: String
-//) {
-//    Card(
-//        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
-//        shape = RoundedCornerShape(16.dp),
-//        modifier = Modifier
-//            .padding(8.dp)
-//            .clickable {
-//            },
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(12.dp),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//
-//            Text(
-//                text = "Starting time " + time.substringBefore(","),
-//                color = Color.White,
-//                fontSize = 14.sp,
-//                textAlign = TextAlign.Start,
-//                modifier = Modifier
-//                    .clickable(
-//                        onClick = {
-//                        }
-//                    ),
-//
-//                )
-//            Text(
-//                text = "End time " + time.substringAfter(","),
-//                fontSize = 14.sp,
-//                color = Color.White
-//            )
-//            Alarm()
-//        }
-//    }
-//}

@@ -3,8 +3,8 @@ package com.example.thundora.view.map
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.repositary.Repository
+import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.repositary.RepositoryImpl
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
@@ -23,10 +23,10 @@ import kotlin.coroutines.suspendCoroutine
 
 class MapViewModel(
     private val client: PlacesClient,
-    private val repo: Repository
-) : ViewModel() {
+    private val repo: RepositoryImpl
+) : ViewModel(),IMapViewModel {
     private val _markerState = MutableStateFlow(MarkerState(LatLng(0.0, 0.0)))
-    val markerState: StateFlow<MarkerState> = _markerState
+    override val markerState: StateFlow<MarkerState> = _markerState
 
     private val _homeLocation = MutableStateFlow(LatLng(0.0, 0.0))
 
@@ -41,18 +41,18 @@ class MapViewModel(
         _markerState.value = MarkerState(LatLng(lat, lon))
     }
 
-    fun updateMarkerPosition(latLng: LatLng) {
+    override fun updateMarkerPosition(latLng: LatLng) {
         _markerState.value = MarkerState(latLng)
     }
 
-    fun setHomeLocation(latLng: LatLng) {
+    override fun setHomeLocation(latLng: LatLng) {
         _homeLocation.value = latLng
         repo.saveData(SharedKeys.HOME_LAT.toString(), latLng.latitude.toString())
         repo.saveData(SharedKeys.HOME_LON.toString(), latLng.longitude.toString())
         _markerState.value = MarkerState(latLng)
     }
 
-    suspend fun getAddressPredictions(
+    override suspend fun getAddressPredictions(
         inputString: String
     ): List<AutocompletePrediction> = suspendCoroutine { continuation ->
         val sessionToken = AutocompleteSessionToken.newInstance()
@@ -72,7 +72,7 @@ class MapViewModel(
             }
     }
 
-    fun getPlaceDetails(placeId: String, onResult: (LatLng?) -> Unit) {
+    override fun getPlaceDetails(placeId: String, onResult: (LatLng?) -> Unit) {
         val placeFields = listOf(Place.Field.LAT_LNG)
         val request = FetchPlaceRequest.builder(placeId, placeFields).build()
 
@@ -86,7 +86,7 @@ class MapViewModel(
         }
     }
 
-    fun addFavoriteCity(lat: Double, lon: Double) {
+    override fun addFavoriteCity(lat: Double, lon: Double) {
         viewModelScope.launch {
             repo.getWeather(lat, lon, "metric", "en")
                 .catch { e -> Log.e("MapViewModel", "Error adding favorite", e) }

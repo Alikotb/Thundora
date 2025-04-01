@@ -2,10 +2,10 @@ package com.example.thundora.view.favorite.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.pojos.api.Weather
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.repositary.Repository
+import com.example.thundora.domain.model.api.Response
+import com.example.thundora.domain.model.api.Weather
+import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.repositary.RepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,17 +13,17 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class FavoriteViewModel(private val repository: Repository) : ViewModel() {
+class FavoriteViewModel(private val repository: RepositoryImpl) : ViewModel(),IFavoriteViewModel  {
     private val _favoriteCities = MutableStateFlow<Response<List<Weather>>>(Response.Loading)
-    val favoriteCities = _favoriteCities.asStateFlow()
+    override val favoriteCities = _favoriteCities.asStateFlow()
 
     private val _favoriteCity = MutableStateFlow<Response<Weather>>(Response.Loading)
-    val favoriteCity = _favoriteCity.asStateFlow()
+    override val favoriteCity = _favoriteCity.asStateFlow()
 
     private val _language = MutableStateFlow("")
-    val language: StateFlow<String> = _language
+    override val language: StateFlow<String> = _language
     private val _temperatureUnit = MutableStateFlow("")
-    val temperatureUnit: StateFlow<String> =  _temperatureUnit.asStateFlow()
+    override val temperatureUnit: StateFlow<String> =  _temperatureUnit.asStateFlow()
 
     init{
         _language.value = repository.fetchData(SharedKeys.LANGUAGE.toString(), "en")
@@ -31,7 +31,7 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
     }
 
 
-    fun getFavoriteCities() {
+    override fun getFavoriteCities() {
         try {
             viewModelScope.launch {
                 repository.getAllWeather()
@@ -52,7 +52,7 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun deleteFavoriteCity(city: String) {
+    override fun deleteFavoriteCity(city: String) {
         viewModelScope.launch {
             try {
                 repository.deleteWeather(city)
@@ -62,7 +62,7 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun addFavoriteCity(city: Weather) {
+    override fun addFavoriteCity(city: Weather) {
         viewModelScope.launch {
             try {
                 repository.addWeather(city)
@@ -72,7 +72,7 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getFavoriteCityApi(city:String ,lat: Double, lon: Double) {
+    override fun getFavoriteCityApi(city:String, lat: Double, lon: Double) {
 
         try {
             viewModelScope.launch {
@@ -91,7 +91,7 @@ class FavoriteViewModel(private val repository: Repository) : ViewModel() {
             _favoriteCity.value = Response.Error(e.localizedMessage ?: "Error fetching favorite")
         }
     }
-    fun getFavoriteCityRomm(city: String){
+    override fun getFavoriteCityRoom(city: String){
         try {
             viewModelScope.launch {
                 repository.getWeather(city)

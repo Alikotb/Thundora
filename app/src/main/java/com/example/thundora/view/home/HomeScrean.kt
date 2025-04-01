@@ -37,8 +37,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -74,31 +72,31 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.thundora.R
-import com.example.thundora.model.localdatasource.LocalDataSource
-import com.example.thundora.model.localdatasource.WeatherDataBase
-import com.example.thundora.model.pojos.api.ApiResponse
-import com.example.thundora.model.pojos.api.Forecast
-import com.example.thundora.model.pojos.api.Response
-import com.example.thundora.model.pojos.api.Weather
-import com.example.thundora.model.remotedatasource.ApiClient
-import com.example.thundora.model.remotedatasource.RemoteDataSource
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.sharedpreference.SharedPreference
-import com.example.thundora.model.utils.CountryHelper
-import com.example.thundora.model.utils.DateTimeHelper
-import com.example.thundora.model.utils.dailyForecasts
-import com.example.thundora.model.utils.formatNumberBasedOnLanguage
-import com.example.thundora.model.utils.getDegree
-import com.example.thundora.model.utils.getLanguage
-import com.example.thundora.model.utils.getWindSpeed
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.domain.model.api.ApiResponse
+import com.example.thundora.domain.model.api.Forecast
+import com.example.thundora.domain.model.api.Response
+import com.example.thundora.domain.model.api.Weather
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.utils.CountryHelper
+import com.example.thundora.utils.DateTimeHelper
+import com.example.thundora.utils.dailyForecasts
+import com.example.thundora.utils.formatNumberBasedOnLanguage
+import com.example.thundora.utils.getDegree
+import com.example.thundora.utils.getLanguage
+import com.example.thundora.utils.getWindSpeed
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.home.viewmodel.HomeFactory
 import com.example.thundora.view.home.viewmodel.HomeViewModel
-import com.example.thundora.view.utilies.LoadingScreen
-import com.example.thundora.view.utilies.getBackgroundColor
-import com.example.thundora.view.utilies.getIcon
-import com.example.thundora.view.utilies.getWeatherColors
-import com.example.thundora.view.utilies.isInternetAvailable
+import com.example.thundora.view.components.LoadingScreen
+import com.example.thundora.view.components.getBackgroundColor
+import com.example.thundora.view.components.getIcon
+import com.example.thundora.view.components.getWeatherColors
+import com.example.thundora.view.components.isInternetAvailable
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -136,7 +134,7 @@ fun HomeScreen(
 
     val viewModel: HomeViewModel = viewModel(
         factory = HomeFactory(
-            Repository.getInstance(
+            RepositoryImpl.getInstance(
                 RemoteDataSource(ApiClient.weatherService),
                 LocalDataSource(
                     WeatherDataBase.getInstance(LocalContext.current).getForecastDao(),
@@ -154,7 +152,6 @@ fun HomeScreen(
     val windSpeedUnit = getWindSpeed(getLanguage(language), wind)
 
     val apiForecast by viewModel.forecast.collectAsStateWithLifecycle()
-    val error by viewModel.message.collectAsStateWithLifecycle()
 
     var dataPoints: MutableList<Float> = mutableListOf()
     var hourlyData: MutableList<String> = mutableListOf()

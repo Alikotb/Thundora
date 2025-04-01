@@ -2,17 +2,17 @@ package com.example.thundora.view.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.model.pojos.view.SharedKeys
-import com.example.thundora.model.repositary.Repository
-import com.example.thundora.model.utils.getArabicTemperatureDisplayUnit
-import com.example.thundora.model.utils.getArabicWindUnit
-import com.example.thundora.model.utils.getTemperatureDisplayUnit
-import com.example.thundora.model.utils.getWindDisplayUnit
+import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.utils.getArabicTemperatureDisplayUnit
+import com.example.thundora.utils.getArabicWindUnit
+import com.example.thundora.utils.getTemperatureDisplayUnit
+import com.example.thundora.utils.getWindDisplayUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val repository: Repository) : ViewModel() {
+class SettingsViewModel(private val repository: RepositoryImpl) : ViewModel() {
     private val _selectedLanguage =
         MutableStateFlow(repository.fetchData(SharedKeys.LANGUAGE.toString(), "English"))
     val selectedLanguage: StateFlow<String> = _selectedLanguage
