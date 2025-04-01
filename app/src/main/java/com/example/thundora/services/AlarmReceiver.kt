@@ -21,7 +21,7 @@ import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.utils.getWeatherNotification
-import com.example.thundora.view.components.isInternetAvailable
+import com.example.thundora.utils.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

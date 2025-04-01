@@ -1,4 +1,4 @@
-package com.example.thundora.view.components
+package com.example.thundora.utils
 
 import android.content.Context
 import android.net.ConnectivityManager

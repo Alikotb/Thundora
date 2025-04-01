@@ -2,12 +2,7 @@
 
 package com.example.thundora.view.home
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.net.ConnectivityManager
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -64,24 +59,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.thundora.R
-import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.local.database.WeatherDataBase
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.remote.api.ApiClient
+import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
+import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.domain.model.api.ApiResponse
 import com.example.thundora.domain.model.api.Forecast
 import com.example.thundora.domain.model.api.Response
 import com.example.thundora.domain.model.api.Weather
-import com.example.thundora.data.remote.api.ApiClient
-import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
-import com.example.thundora.data.repositary.RepositoryImpl
-import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.utils.CountryHelper
 import com.example.thundora.utils.DateTimeHelper
 import com.example.thundora.utils.dailyForecasts
@@ -89,14 +82,13 @@ import com.example.thundora.utils.formatNumberBasedOnLanguage
 import com.example.thundora.utils.getDegree
 import com.example.thundora.utils.getLanguage
 import com.example.thundora.utils.getWindSpeed
-import com.example.thundora.ui.theme.DarkBlue
-import com.example.thundora.view.home.viewmodel.HomeFactory
-import com.example.thundora.view.home.viewmodel.HomeViewModel
 import com.example.thundora.view.components.LoadingScreen
 import com.example.thundora.view.components.getBackgroundColor
 import com.example.thundora.view.components.getIcon
 import com.example.thundora.view.components.getWeatherColors
-import com.example.thundora.view.components.isInternetAvailable
+import com.example.thundora.utils.isInternetAvailable
+import com.example.thundora.view.home.viewmodel.HomeFactory
+import com.example.thundora.view.home.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -109,28 +101,8 @@ fun HomeScreen(
     floatingFlag: MutableState<Boolean>,
     navToMaps: () -> Unit
 ) {
-   val  isOnline: MutableState<Boolean> = remember {
-       mutableStateOf(true)
-   }
-    val ctx =LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val hamda = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (context != null)
-                isOnline.value = isInternetAvailable()
-        }
-    }
-    LaunchedEffect(Unit) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            ctx .registerReceiver(hamda,IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-        }
-    }
-    LaunchedEffect(isOnline.value) {
-
-    Log.d("TAG", "HomeScreen: ${isOnline.value}")
-    }
-    floatingFlag.value = false
     flag.value = true
+    floatingFlag.value = false
 
     val viewModel: HomeViewModel = viewModel(
         factory = HomeFactory(
@@ -189,7 +161,6 @@ fun HomeScreen(
 
             Home(
                 (apiForecast as Response.Success).data,
-                flag,
                 navToMaps,
                 dataPoints,
                 hourlyData,
@@ -219,7 +190,6 @@ fun HomeScreen(
 @Composable
 fun Home(
     apiForecast: ApiResponse,
-    flag: MutableState<Boolean>,
     navToMaps: () -> Unit,
     dataPoints: MutableList<Float>,
     hourlyData: MutableList<String>,
@@ -239,13 +209,12 @@ fun Home(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(48.dp))
-        apiForecast.weather.let {
-            WeatherCard(
-                it,
-                flag,
-                temperatureUnit,
-                speedUnit,
-            ) { navToMaps() }
+        WeatherCard(
+            apiForecast.weather,
+            temperatureUnit,
+            speedUnit,
+        ) {
+            navToMaps()
         }
         LineChartScreen(
             dataPoints = dataPoints,
@@ -268,18 +237,15 @@ fun Home(
 }
 
 
-
-
-
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun WeatherCard(
     weatherState: Weather?,
-    flag: MutableState<Boolean>,
     temperatureUnit: String,
     speedUnit: String,
     navToMaps: () -> Unit
 ) {
+    val ctx = LocalContext.current
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
     val (backgroundColor, textColor) = getWeatherColors(iconCode)
 
@@ -308,8 +274,16 @@ fun WeatherCard(
                         .padding(start = 8.dp)
                         .clickable(
                             onClick = {
-                                flag.value = false
-                                navToMaps()
+                                if (isInternetAvailable()) {
+                                    navToMaps()
+                                } else {
+                                    Toast.makeText(
+                                        ctx,
+                                        ctx.getString(R.string.no_internet_connect_to_network_please),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                }
                             }
                         ),
                 )

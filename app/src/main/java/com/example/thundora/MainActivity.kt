@@ -11,7 +11,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -30,20 +38,24 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +71,7 @@ import com.example.thundora.services.AlarmReceiver
 import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.utils.getLanguage
 import com.example.thundora.ui.theme.DeepBlue
+import com.example.thundora.utils.ConnectivityObserver
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.map.GPSLocation.getLocation
 import com.example.thundora.view.map.GPSLocation.isLocationEnabled
@@ -76,9 +89,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var locationState: MutableState<Location>
     lateinit var flag: MutableState<Boolean>
     lateinit var floatingFlag: MutableState<Boolean>
+    private lateinit var connectivityObserver: ConnectivityObserver
     val gpsLocation = GPSLocation
     val sharedPref = SharedPreference.getInstance()
     val context = this
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +101,7 @@ class MainActivity : ComponentActivity() {
         AlarmReceiver.stopAlarmSound()
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()
+
         val lang = getLanguage(
             sharedPref.fetchData(
                 SharedKeys.LANGUAGE.toString(),
@@ -94,10 +110,15 @@ class MainActivity : ComponentActivity() {
         )
         applyLanguage(lang)
 
+            connectivityObserver =   ConnectivityObserver(applicationContext)
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
             navController = rememberNavController()
+            val isOnline by connectivityObserver.isOnline.observeAsState(initial = true)
+            DisposableEffect(connectivityObserver) {
+                onDispose { connectivityObserver.unregister() }
+            }
 
             val selectedNavigationIndex = rememberSaveable { mutableIntStateOf(0) }
 
@@ -109,7 +130,10 @@ class MainActivity : ComponentActivity() {
 
             val fabIcon = remember { mutableStateOf(Icons.Default.Favorite) }
             val fabAction = remember { mutableStateOf({}) }
-            MainScreen(flag, fabIcon, fabAction, currentBackStackEntry, selectedNavigationIndex)
+
+
+
+            MainScreen(flag, fabIcon, fabAction, currentBackStackEntry, selectedNavigationIndex,isOnline)
         }
 
     }
@@ -291,9 +315,15 @@ class MainActivity : ComponentActivity() {
         fabIcon: MutableState<ImageVector>,
         fabAction: MutableState<() -> Unit>,
         currentBackStackEntry: NavBackStackEntry?,
-        selectedNavigationIndex: MutableIntState
+        selectedNavigationIndex: MutableIntState,
+        isOnline: Boolean
+
     ) {
+        val systemBarHeight = WindowInsets.systemBars
+            .asPaddingValues()
+            .calculateTopPadding()
         Scaffold(
+
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 if (flag.value) {
@@ -304,6 +334,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             },
+
             floatingActionButton = {
                 if (floatingFlag.value) {
                     FloatingActionButton(
@@ -320,7 +351,28 @@ class MainActivity : ComponentActivity() {
                 }
             }
         ) { innerPadding ->
-            SetUpNavHost(navController = navController, flag, floatingFlag, fabIcon, fabAction)
+
+            Column {
+                if (!isOnline) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colorResource(R.color.deep_blue))
+                            .padding(top=innerPadding.calculateTopPadding())
+                            .background(Color.Red)
+                    ) {
+                        Text(
+                            text = "No internet connection",
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(8.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                SetUpNavHost(navController = navController, flag, floatingFlag, fabIcon, fabAction)
+            }
 
         }
     }
@@ -339,6 +391,30 @@ class MainActivity : ComponentActivity() {
                 View.SYSTEM_UI_FLAG_VISIBLE
             }
         }
+    }
+
+    @Composable
+    private fun ConnectivityBanner() {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Red)
+                .padding(8.dp)
+        ) {
+            Text(
+                text = "No internet connection",
+                color = Color.White,
+                modifier = Modifier.align(Alignment.Center),
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        connectivityObserver.unregister()
+
     }
 
 }

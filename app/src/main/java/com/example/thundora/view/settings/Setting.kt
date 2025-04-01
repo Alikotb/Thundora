@@ -3,6 +3,7 @@ package com.example.thundora.view.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,8 +52,10 @@ import com.example.thundora.data.remote.api.ApiClient
 import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.domain.model.view.ScreensRout
 import com.example.thundora.utils.getTemperatureUnit
 import com.example.thundora.ui.theme.DarkBlue
+import com.example.thundora.utils.isInternetAvailable
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.map.GPSLocation.getLocation
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -304,27 +307,40 @@ fun LocationSelectionChips(viewModel: SettingsViewModel, navToMap: () -> Unit) {
                     FilterChip(
                         selected = isSelected,
                         onClick = {
-                            viewModel.setLocationMode(option)
-                            if (option == context.getString(R.string.gps)) {
-                                scope.launch {
-                                    try {
-                                        if (gpsLocation.checkPermission(context)) {
-                                            if (!gpsLocation.isLocationEnabled(context)) {
-                                                gpsLocation.enableLocationService(context)
-                                            } else {
-                                                val location = getLocation(context)
-                                                location?.let {
-                                                    viewModel.setLocation(it.latitude, it.longitude)
+                            if (isInternetAvailable()) {
+                                viewModel.setLocationMode(option)
+                                if (option == context.getString(R.string.gps)) {
+                                    scope.launch {
+                                        try {
+                                            if (gpsLocation.checkPermission(context)) {
+                                                if (!gpsLocation.isLocationEnabled(context)) {
+                                                    gpsLocation.enableLocationService(context)
+                                                } else {
+                                                    val location = getLocation(context)
+                                                    location?.let {
+                                                        viewModel.setLocation(
+                                                            it.latitude,
+                                                            it.longitude
+                                                        )
+                                                    }
                                                 }
                                             }
+                                        } catch (e: Exception) {
                                         }
-                                    } catch (e: Exception) {
                                     }
+                                } else {
+                                    navToMap()
                                 }
+
                             } else {
-                                navToMap()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.no_internet_connect_to_network_please),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
+
                         label = {
                             Text(
                                 text = option,
@@ -504,7 +520,7 @@ fun ContactImageIcon(imageRes: Int, contentDesc: String, onClick: () -> Unit) {
 
 fun restartActivity(context: Context) {
 
-    SharedPreference.getInstance().saveData(SharedKeys.RESTARTED_FLAG.toString(),true)
+    SharedPreference.getInstance().saveData(SharedKeys.RESTARTED_FLAG.toString(), true)
 
     val intent = (context as? Activity)?.intent
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)

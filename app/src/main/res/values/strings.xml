@@ -55,5 +55,6 @@
     <string name="pick_a_time">Pick a time</string>
     <string name="starting_time">Starting Time:</string>
     <string name="end_time">"End Time: "</string>
+    <string name="no_internet_connect_to_network_please">No internet connect to network please</string>
 </resources>
 

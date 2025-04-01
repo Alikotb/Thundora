@@ -2,6 +2,7 @@ package com.example.thundora.view.navigation
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -12,9 +13,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.thundora.R
 import com.example.thundora.domain.model.view.ScreensRout
 import com.example.thundora.domain.model.view.SharedKeys
 import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.utils.isInternetAvailable
 import com.example.thundora.view.alarm.AlarmScreen
 import com.example.thundora.view.favorite.DetailsScreen
 import com.example.thundora.view.favorite.FavoriteScreen
@@ -33,7 +36,7 @@ fun SetUpNavHost(
     fabIcon: MutableState<ImageVector>,
     fabAction: MutableState<() -> Unit>
 ) {
-
+    val ctx = navController.context
     NavHost(
         navController = navController,
         startDestination = if (SharedPreference.getInstance()
@@ -55,7 +58,9 @@ fun SetUpNavHost(
 
         composable<ScreensRout.Home> {
             HomeScreen(flag, floatingFlag) {
-                navController.navigate(ScreensRout.Map)
+//                if (isInternetAvailable()) {
+                    navController.navigate(ScreensRout.Map)
+
             }
         }
 
@@ -67,7 +72,15 @@ fun SetUpNavHost(
             flag.value = true
             fabIcon.value = Icons.Default.Favorite
             fabAction.value = {
-                navController.navigate(ScreensRout.Map)
+                if (isInternetAvailable()) {
+                    navController.navigate(ScreensRout.Map)
+                } else {
+                    Toast.makeText(
+                        ctx,
+                        ctx.getString(R.string.no_internet_connect_to_network_please),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
             FavoriteScreen { city, lang, lat ->
                 navController.navigate(ScreensRout.Details(city, lang, lat))

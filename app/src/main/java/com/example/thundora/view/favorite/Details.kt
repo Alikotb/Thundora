@@ -54,7 +54,7 @@ import com.example.thundora.view.favorite.viewModel.FavoriteFactory
 import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
 import com.example.thundora.view.home.WeatherInfo
 import com.example.thundora.view.components.getIcon
-import com.example.thundora.view.components.isInternetAvailable
+import com.example.thundora.utils.isInternetAvailable
 
 @Composable
 fun DetailsScreen(floatingFlag: MutableState<Boolean>, city: String, lat: Double, lon: Double) {
