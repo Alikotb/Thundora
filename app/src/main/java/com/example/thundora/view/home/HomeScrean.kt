@@ -2,6 +2,11 @@
 
 package com.example.thundora.view.home
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -61,7 +66,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -103,6 +111,26 @@ fun HomeScreen(
     floatingFlag: MutableState<Boolean>,
     navToMaps: () -> Unit
 ) {
+   val  isOnline: MutableState<Boolean> = remember {
+       mutableStateOf(true)
+   }
+    val ctx =LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val hamda = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (context != null)
+                isOnline.value = isInternetAvailable()
+        }
+    }
+    LaunchedEffect(Unit) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            ctx .registerReceiver(hamda,IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        }
+    }
+    LaunchedEffect(isOnline.value) {
+
+    Log.d("TAG", "HomeScreen: ${isOnline.value}")
+    }
     floatingFlag.value = false
     flag.value = true
 
@@ -117,7 +145,6 @@ fun HomeScreen(
             )
         )
     )
-    val context = LocalContext.current
 
 
     val language by viewModel.language.collectAsStateWithLifecycle()
@@ -175,8 +202,7 @@ fun HomeScreen(
         }
 
         is Response.Error -> {
-            Text(text = (error as Response.Error).message)
-
+            Error()
         }
 
         is Response.Loading -> {
@@ -243,6 +269,10 @@ fun Home(
         Spacer(Modifier.height(150.dp))
     }
 }
+
+
+
+
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable

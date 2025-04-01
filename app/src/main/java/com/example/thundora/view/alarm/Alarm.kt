@@ -1,10 +1,15 @@
 package com.example.thundora.view.alarm
 
 
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,24 +22,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.OutlinedTextField
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -68,9 +67,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,8 +87,9 @@ import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmFactory
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmViewModel
 import com.example.thundora.view.favorite.SwipeToDeleteContainer
+import com.example.thundora.view.utilies.AlarmLottie
+import com.example.thundora.view.utilies.Empty
 import com.example.thundora.view.utilies.LoadingScreen
-import com.example.thundora.view.utilies.getIcon
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
@@ -132,7 +131,7 @@ fun AlarmScreen(
     }
     when (alarms) {
         is Response.Error -> {
-
+            Error()
         }
 
         Response.Loading -> {
@@ -172,13 +171,7 @@ fun AlarmScreen(
                 }
             } else {
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = colorResource(id = R.color.deep_blue)),
-                ) {
-                    Text(text = "No alarms set")
-                }
+                Empty()
 
                 if (showBottomSheet) {
                     SettingsBDS(
@@ -536,48 +529,92 @@ fun ClickableOutlinedTextField(
     )
 }
 
+
+
 @Composable
-fun AlarmCard(
-    time: String
-) {
+fun AlarmCard(time: String) {
     Card(
         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
         shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         modifier = Modifier
-            .padding(8.dp)
-            .clickable {
-            },
+            .fillMaxWidth()
+            .padding(12.dp)
+            .clickable { }
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Text(
-                text = "Starting time " + time.substringBefore(","),
-                color = Color.White,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .clickable(
-                        onClick = {
-                        }
-                    ),
-
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Starting Time: ${time.substringBefore(",")}",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
-            Text(
-                text = "End time " + time.substringAfter(","),
-                fontSize = 14.sp,
-                color = Color.White
-            )
-            Image(
-                painter = painterResource(id = getIcon("01n")),
-                contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(48.dp)
-            )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "End Time: ${time.substringAfter(",")}",
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+            }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.offset(x = 12.dp) // Move it slightly to prevent overflow
+            ) {
+                AlarmLottie()
+            }
         }
     }
 }
+
+
+
+//@Composable
+//fun AlarmCard(
+//    time: String
+//) {
+//    Card(
+//        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
+//        shape = RoundedCornerShape(16.dp),
+//        modifier = Modifier
+//            .padding(8.dp)
+//            .clickable {
+//            },
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(12.dp),
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//
+//            Text(
+//                text = "Starting time " + time.substringBefore(","),
+//                color = Color.White,
+//                fontSize = 14.sp,
+//                textAlign = TextAlign.Start,
+//                modifier = Modifier
+//                    .clickable(
+//                        onClick = {
+//                        }
+//                    ),
+//
+//                )
+//            Text(
+//                text = "End time " + time.substringAfter(","),
+//                fontSize = 14.sp,
+//                color = Color.White
+//            )
+//            Alarm()
+//        }
+//    }
+//}

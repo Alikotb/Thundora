@@ -1,5 +1,6 @@
 package com.example.thundora.view.utilies
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.net.ConnectivityManager
 import com.example.thundora.ThunderApp
@@ -11,3 +12,4 @@ fun isInternetAvailable(): Boolean {
     val networkInfo = connectivityManager.activeNetworkInfo
     return networkInfo != null && networkInfo.isConnected
 }
+

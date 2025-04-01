@@ -82,6 +82,7 @@ import com.example.thundora.model.utils.getLanguage
 import com.example.thundora.model.utils.transferUnit
 import com.example.thundora.view.favorite.viewModel.FavoriteFactory
 import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
+import com.example.thundora.view.utilies.Empty
 import com.example.thundora.view.utilies.LoadingScreen
 import com.example.thundora.view.utilies.getIcon
 import kotlinx.coroutines.delay
@@ -113,8 +114,7 @@ fun FavoriteScreen(
     viewModel.getFavoriteCities()
     when (favoriteCities) {
         is Response.Error -> {
-            Text(text = (favoriteCities as Response.Error).message)
-        }
+            Error()        }
 
         Response.Loading -> {
             LoadingScreen()
@@ -122,7 +122,7 @@ fun FavoriteScreen(
 
         is Response.Success -> {
             if ((favoriteCities as Response.Success).data.isEmpty())
-                Text(text = stringResource(R.string.no_favorite_cities))
+                Empty()
             else {
                 FavoritePage(
                     (favoriteCities as Response.Success).data,
