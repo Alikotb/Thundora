@@ -9,6 +9,7 @@ plugins {
 
 }
 
+val coroutinesVersion by extra("1.5.2")
 android {
     namespace = "com.example.thundora"
     compileSdk = 35
@@ -57,8 +58,8 @@ android {
     }
     packagingOptions {
         exclude("META-INF/LICENSE-notice.md")
-        exclude("META-INF/LICENSE.md")   // (Optional: to exclude the other license file if needed)
-        exclude("META-INF/LICENSE.txt")  // (Optional: in case there are any more conflicts)
+        exclude("META-INF/LICENSE.md")
+        exclude("META-INF/LICENSE.txt")
     }
 }
 
@@ -135,6 +136,16 @@ dependencies {
 
     androidTestImplementation ("io.mockk:mockk-android:1.13.17")
     androidTestImplementation ("io.mockk:mockk-agent:1.13.17")
+
+
+    testImplementation ("io.mockk:mockk-android:1.13.17")
+    testImplementation ("io.mockk:mockk-agent:1.13.17")
+
+    //kotlinx-coroutines
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    androidTestImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+    testImplementation(kotlin("test"))
 }
 
 

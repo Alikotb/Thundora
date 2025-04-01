@@ -1,6 +1,8 @@
 package com.example.thundora.data.repositary
 
+import com.example.thundora.data.local.source.ILocalDataSource
 import com.example.thundora.data.local.source.LocalDataSource
+import com.example.thundora.data.remote.remotedatasource.IRemoteDataSource
 import com.example.thundora.domain.model.api.AlarmEntity
 import com.example.thundora.domain.model.api.ApiResponse
 import com.example.thundora.domain.model.api.Forecast
@@ -10,7 +12,7 @@ import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class RepositoryImpl private constructor(private val remote: RemoteDataSource, private val local: LocalDataSource) : IRepository {
+class RepositoryImpl (private val remote: IRemoteDataSource, private val local: ILocalDataSource) : IRepository {
 
     override suspend fun getWeather(
         lat: Double,

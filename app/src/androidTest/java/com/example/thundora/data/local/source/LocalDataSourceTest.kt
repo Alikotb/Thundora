@@ -11,7 +11,6 @@ import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.domain.model.api.AlarmEntity
 import io.mockk.mockk
 import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert
