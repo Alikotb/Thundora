@@ -55,6 +55,11 @@ android {
         compose = true
         buildConfig = true
     }
+    packagingOptions {
+        exclude("META-INF/LICENSE-notice.md")
+        exclude("META-INF/LICENSE.md")   // (Optional: to exclude the other license file if needed)
+        exclude("META-INF/LICENSE.txt")  // (Optional: in case there are any more conflicts)
+    }
 }
 
 
@@ -125,6 +130,11 @@ dependencies {
     implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
+
+    //test
+
+    androidTestImplementation ("io.mockk:mockk-android:1.13.17")
+    androidTestImplementation ("io.mockk:mockk-agent:1.13.17")
 }
 
 

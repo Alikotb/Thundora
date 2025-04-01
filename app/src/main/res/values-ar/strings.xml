@@ -42,5 +42,19 @@
     <string name="email_">البريد الإلكتروني</string>
     <string name="facebook">فيسبوك</string>
     <string name="linkedin">لينكدإن</string>
+    <string name="alarm_schedule">جدول التنبيه</string>
+    <string name="dismiss">إلغاء</string>
+    <string name="start_duration">مدة البدء</string>
+    <string name="end_duration">مدة الانتهاء</string>
+    <string name="alarm_deleted">تم حذف التنبيه</string>
+    <string name="notification">إشعار</string>
+    <string name="start_time_must_be_in_the_future">يجب أن يكون وقت البدء في المستقبل!</string>
+    <string name="thundora_app">تطبيق ثاندورا</string>
+    <string name="save">حفظ</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="pick_a_time">اختر وقتًا</string>
+    <string name="starting_time">وقت البدء:</string>
+    <string name="end_time">وقت الانتهاء:</string>
 
 </resources>
