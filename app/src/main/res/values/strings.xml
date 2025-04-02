@@ -56,5 +56,10 @@
     <string name="starting_time">Starting Time:</string>
     <string name="end_time">"End Time: "</string>
     <string name="no_internet_connect_to_network_please">No internet connect to network please</string>
+    <string name="hpa">" hPa"</string>
+    <string name="norain">NoRain</string>
+    <string name="defaultlang">Default</string>
+    <string name="snooze">Snooze</string>
+    <string name="alarm_snoozed">Alarm snoozed for 1 minute</string>
 </resources>
 

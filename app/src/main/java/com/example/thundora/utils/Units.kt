@@ -1,5 +1,9 @@
 package com.example.thundora.utils
 
+import android.content.Context
+import android.os.Build
+import java.util.Locale
+
 
 fun getDegree(language: String, degree: String): String {
     return when {
@@ -26,21 +30,41 @@ fun getWindSpeed(language: String, degree: String): String {
 }
 
 fun transferUnit(tempUnit: String, tempDegree: Double): Double {
-    return when  {
-        tempUnit.contains( "C") || tempUnit.contains("س") -> tempDegree
-        tempUnit.contains( "F") || tempUnit.contains( "ف") -> (tempDegree * 9 / 5) + 32
-        tempUnit.contains( "K") || tempUnit.contains( "ك") -> tempDegree - 273.15
+    return when {
+        tempUnit.contains("C") || tempUnit.contains("س") -> tempDegree
+        tempUnit.contains("F") || tempUnit.contains("ف") -> (tempDegree * 9 / 5) + 32
+        tempUnit.contains("K") || tempUnit.contains("ك") -> tempDegree - 273.15
         else -> tempDegree
     }
 }
 
 fun getTemperatureUnit(setting: String): String {
     return when {
-        setting.contains("Fahrenheit", ignoreCase = true)|| setting.contains("فهرنهيت", ignoreCase = true) -> "imperial"
-        setting.contains("Celsius", ignoreCase = true) || setting.contains("سيليزيوس", ignoreCase = true) -> "metric"
-        setting.contains("Kelvin", ignoreCase = true)|| setting.contains("كيلفن", ignoreCase = true) -> "standard"
-        setting.contains("m/s", ignoreCase = true) || setting.contains("م/ث", ignoreCase = true) -> "metric"
-        setting.contains("mile/h", ignoreCase = true)|| setting.contains("ميل/س", ignoreCase = true) -> "imperial"
+        setting.contains("Fahrenheit", ignoreCase = true) || setting.contains(
+            "فهرنهيت",
+            ignoreCase = true
+        ) -> "imperial"
+
+        setting.contains("Celsius", ignoreCase = true) || setting.contains(
+            "سيليزيوس",
+            ignoreCase = true
+        ) -> "metric"
+
+        setting.contains("Kelvin", ignoreCase = true) || setting.contains(
+            "كيلفن",
+            ignoreCase = true
+        ) -> "standard"
+
+        setting.contains("m/s", ignoreCase = true) || setting.contains(
+            "م/ث",
+            ignoreCase = true
+        ) -> "metric"
+
+        setting.contains("mile/h", ignoreCase = true) || setting.contains(
+            "ميل/س",
+            ignoreCase = true
+        ) -> "imperial"
+
         else -> "Unknown Unit"
     }
 }
@@ -86,6 +110,13 @@ fun getLanguage(apiUnit: String): String {
     return when (apiUnit) {
         "English" -> "en"
         "العربية" -> "ar"
+
         else -> "en"
     }
 }
+
+
+
+
+
+

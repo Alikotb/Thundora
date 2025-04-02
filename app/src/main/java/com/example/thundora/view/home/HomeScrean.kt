@@ -658,13 +658,13 @@ fun WeatherForecastBottomSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp), // More balanced internal padding
+                        .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp), // Space between sections
+                            .padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -726,7 +726,7 @@ fun WeatherForecastBottomSheet(
                             value = formatNumberBasedOnLanguage(
                                 weatherState?.main?.pressure?.toString() ?: "--"
                             ),
-                            unit = " hPa",
+                            unit = stringResource(R.string.hpa),
                             icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
                             iconTint = Color.White,
                             color = Color.White
@@ -752,7 +752,7 @@ fun WeatherForecastBottomSheet(
                         )
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.rain?.`3h`?.toString() ?: "NoRain"
+                                weatherState?.rain?.`3h`?.toString() ?: stringResource(R.string.norain)
                             ),
                             unit = "",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
@@ -787,144 +787,6 @@ fun WeatherForecastBottomSheet(
         }
     }
 }
-
-
-//@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
-//@Composable
-//fun WeatherForecastBottomSheet(
-//    weatherState: Forecast.Item0?,
-//    temperatureUnit: String,
-//    onClose: () -> Unit
-//) {
-//    var showBottomSheet by remember { mutableStateOf(true) }
-//    val sheetState = rememberModalBottomSheetState()
-//    val scope = rememberCoroutineScope()
-//    if (showBottomSheet) {
-//        ModalBottomSheet(
-//            onDismissRequest = { onClose() },
-//            sheetState = sheetState,
-//        ) {
-//            Card(
-//                colors = CardDefaults.cardColors(containerColor = DarkBlue),
-//                modifier = Modifier.fillMaxSize()
-//            ) {
-//                Column(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.SpaceBetween,
-//                        verticalAlignment = Alignment.CenterVertically
-//                    ) {
-//                        Text(
-//                            text = SimpleDateFormat("EEEE, dd MMM", Locale.getDefault())
-//                                .format(Date(weatherState?.dt?.times(1000L) ?: 0L)),
-//                            modifier = Modifier.padding(top = 8.dp),
-//                            fontSize = 20.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            color = Color.White
-//                        )
-//                        Text(
-//                            text = weatherState?.weather?.get(0)?.description?.capitalize(Locale.ROOT)
-//                                ?: R.string.unknown.toString(),
-//                            fontSize = 18.sp,
-//                            color = Color.White
-//                        )
-//                    }
-//                    Spacer(Modifier.height(16.dp))
-//
-//                    Text(
-//                        text = "${
-//                            formatNumberBasedOnLanguage(
-//                                (weatherState?.main?.temp?.toInt() ?: 0).toString()
-//                            )
-//                        } ° $temperatureUnit",
-//                        fontSize = 35.sp,
-//                        color = Color.White,
-//
-//                        )
-//                    Spacer(Modifier.height(16.dp))
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.SpaceAround
-//                    ) {
-//                        WeatherInfo(
-//                            value = formatNumberBasedOnLanguage(
-//                                weatherState?.main?.humidity?.toString() ?: "--"
-//                            ),
-//                            unit = "%",
-//                            icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
-//                            iconTint = Color.White,
-//                            color = Color.White
-//                        )
-//                        WeatherInfo(
-//                            value = formatNumberBasedOnLanguage(
-//                                weatherState?.wind?.speed?.toString() ?: "--"
-//                            ),
-//                            unit = " km/h",
-//                            icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
-//                            iconTint = Color.White,
-//                            color = Color.White
-//                        )
-//                        WeatherInfo(
-//                            value = formatNumberBasedOnLanguage(
-//                                weatherState?.main?.pressure?.toString() ?: "--"
-//                            ),
-//                            unit = " hPa",
-//                            icon = ImageVector.vectorResource(id = R.drawable.ic_pressure),
-//                            iconTint = Color.White,
-//                            color = Color.White
-//                        )
-//                    }
-//                    Spacer(Modifier.height(16.dp))
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.SpaceAround
-//                    ) {
-//                        WeatherInfo(
-//                            value = formatNumberBasedOnLanguage(
-//                                weatherState?.clouds?.all?.toString() ?: "--"
-//                            ),
-//                            unit = "%",
-//                            icon = ImageVector.vectorResource(id = R.drawable.ic_wind),
-//                            iconTint = Color.White,
-//                            color = Color.White
-//                        )
-//                        WeatherInfo(
-//                            value = formatNumberBasedOnLanguage(
-//                                weatherState?.rain?.`3h`?.toString() ?: "NoRain"
-//                            ),
-//                            unit = "",
-//                            icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),
-//                            iconTint = Color.White,
-//                            color = Color.White
-//                        )
-//                    }
-//                    Button(
-//                        onClick = {
-//                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-//                                showBottomSheet = false
-//                            }
-//                            onClose()
-//                        },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(top = 16.dp),
-//                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
-//                        shape = RoundedCornerShape(12.dp)
-//                    ) {
-//                        Text(
-//                            stringResource(R.string.close),
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun LineChart(

@@ -1,5 +1,6 @@
 package com.example.thundora
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.location.Location
@@ -94,7 +95,7 @@ class MainActivity : ComponentActivity() {
     val sharedPref = SharedPreference.getInstance()
     val context = this
 
-
+    @SuppressLint("SuspiciousIndentation")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,15 +103,18 @@ class MainActivity : ComponentActivity() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()
 
-        val lang = getLanguage(
-            sharedPref.fetchData(
-                SharedKeys.LANGUAGE.toString(),
-                Locale.getDefault().language
+        val lang =
+            getLanguage(
+                sharedPref.fetchData(
+                    SharedKeys.LANGUAGE.toString(),
+                    Locale.getDefault().language
+
+                )
             )
-        )
+
         applyLanguage(lang)
 
-            connectivityObserver =   ConnectivityObserver(applicationContext)
+        connectivityObserver = ConnectivityObserver(applicationContext)
         enableEdgeToEdge()
         setLightStatusBar(true)
         setContent {
@@ -133,7 +137,14 @@ class MainActivity : ComponentActivity() {
 
 
 
-            MainScreen(flag, fabIcon, fabAction, currentBackStackEntry, selectedNavigationIndex,isOnline)
+            MainScreen(
+                flag,
+                fabIcon,
+                fabAction,
+                currentBackStackEntry,
+                selectedNavigationIndex,
+                isOnline
+            )
         }
 
     }
@@ -151,7 +162,11 @@ class MainActivity : ComponentActivity() {
         super.onStart()
 
 
-        if (sharedPref.fetchData(SharedKeys.LOCATION.toString(), context.getString(R.string.gps)) == context.getString(R.string.gps)) {
+        if (sharedPref.fetchData(
+                SharedKeys.LOCATION.toString(),
+                context.getString(R.string.gps)
+            ) == context.getString(R.string.gps)
+        ) {
             if (gpsLocation.checkPermission(context)) {
                 if (!isLocationEnabled(this)) {
 
@@ -205,8 +220,14 @@ class MainActivity : ComponentActivity() {
                     try {
                         val location = getLocation(context)
                         location?.let {
-                            sharedPref.saveData(SharedKeys.HOME_LAT.toString(), it.latitude.toString())
-                            sharedPref.saveData(SharedKeys.HOME_LON.toString(), it.longitude.toString())
+                            sharedPref.saveData(
+                                SharedKeys.HOME_LAT.toString(),
+                                it.latitude.toString()
+                            )
+                            sharedPref.saveData(
+                                SharedKeys.HOME_LON.toString(),
+                                it.longitude.toString()
+                            )
                         } ?: run {
                             Toast.makeText(context, "Unable to get location!", Toast.LENGTH_SHORT)
                                 .show()
@@ -358,7 +379,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(colorResource(R.color.deep_blue))
-                            .padding(top=innerPadding.calculateTopPadding())
+                            .padding(top = innerPadding.calculateTopPadding())
                             .background(Color.Red)
                     ) {
                         Text(
@@ -393,27 +414,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    private fun ConnectivityBanner() {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Red)
-                .padding(8.dp)
-        ) {
-            Text(
-                text = "No internet connection",
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Center),
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-
-
     override fun onDestroy() {
         super.onDestroy()
-        connectivityObserver.unregister()
+        // connectivityObserver.unregister()
 
     }
 

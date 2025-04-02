@@ -56,5 +56,9 @@
     <string name="pick_a_time">اختر وقتًا</string>
     <string name="starting_time">وقت البدء:</string>
     <string name="end_time">وقت الانتهاء:</string>
+    <string name="no_internet_connect_to_network_please">لا يوجد اتصال بالإنترنت، يرجى الاتصال بالشبكة</string>
+    <string name="hpa">" هكتوباسكال"</string>
+    <string name="norain">لا مطر</string>
+    <string name="defaultlang">لغة النظام</string>
 
 </resources>

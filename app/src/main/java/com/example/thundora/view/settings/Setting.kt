@@ -6,7 +6,6 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,13 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -34,7 +30,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -45,16 +40,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.local.database.WeatherDataBase
-import com.example.thundora.domain.model.view.SharedKeys
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.remote.api.ApiClient
 import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
-import com.example.thundora.data.local.sharedpreference.SharedPreference
-import com.example.thundora.domain.model.view.ScreensRout
-import com.example.thundora.utils.getTemperatureUnit
 import com.example.thundora.ui.theme.DarkBlue
+import com.example.thundora.utils.getTemperatureUnit
 import com.example.thundora.utils.isInternetAvailable
 import com.example.thundora.view.map.GPSLocation
 import com.example.thundora.view.map.GPSLocation.getLocation
@@ -441,87 +434,7 @@ fun WendSpeedSelectionChips(viewModel: SettingsViewModel) {
     }
 }
 
-
-@Composable
-fun ContactUsSection() {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E3A8A)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Email,
-                    contentDescription = stringResource(R.string.email),
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(end = 12.dp)
-                )
-                Text(
-                    text = stringResource(R.string.contact_us),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ContactIcon(Icons.Default.Email, stringResource(R.string.email_)) {
-                }
-                ContactImageIcon(R.drawable.ic_facebook, stringResource(R.string.facebook)) {
-                }
-                ContactImageIcon(R.drawable.ic_linkedin, stringResource(R.string.linkedin)) {
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ContactIcon(icon: ImageVector, contentDesc: String, onClick: () -> Unit) {
-    Icon(
-        imageVector = icon,
-        contentDescription = contentDesc,
-        tint = Color.White,
-        modifier = Modifier
-            .size(40.dp)
-            .clickable(onClick = onClick)
-            .padding(8.dp)
-    )
-}
-
-@Composable
-fun ContactImageIcon(imageRes: Int, contentDesc: String, onClick: () -> Unit) {
-    Image(
-        painter = painterResource(id = imageRes),
-        contentDescription = contentDesc,
-        modifier = Modifier
-            .size(40.dp)
-            .clickable(onClick = onClick)
-            .padding(8.dp)
-    )
-}
-
 fun restartActivity(context: Context) {
-
-    SharedPreference.getInstance().saveData(SharedKeys.RESTARTED_FLAG.toString(), true)
-
     val intent = (context as? Activity)?.intent
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
