@@ -8,7 +8,8 @@ plugins {
     id("com.google.devtools.ksp")
 
 }
-
+val androidXTestExtKotlinRunnerVersion by extra("1.1.3")
+val androidXTestCoreVersion by extra("1.6.1")
 val coroutinesVersion by extra("1.5.2")
 android {
     namespace = "com.example.thundora"
@@ -146,6 +147,11 @@ dependencies {
     testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     androidTestImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
     testImplementation(kotlin("test"))
+
+    // AndroidX and Robolectric
+    testImplementation ("androidx.test.ext:junit-ktx:$androidXTestExtKotlinRunnerVersion")
+    testImplementation ("androidx.test:core-ktx:$androidXTestCoreVersion")
+    testImplementation ("org.robolectric:robolectric:4.11")
 }
 
 

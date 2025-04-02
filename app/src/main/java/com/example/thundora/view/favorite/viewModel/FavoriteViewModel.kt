@@ -25,11 +25,11 @@ class FavoriteViewModel(private val repository: RepositoryImpl) : ViewModel(),IF
     private val _temperatureUnit = MutableStateFlow("")
     override val temperatureUnit: StateFlow<String> =  _temperatureUnit.asStateFlow()
 
-    init{
+
+    fun fetchSettings() {
         _language.value = repository.fetchData(SharedKeys.LANGUAGE.toString(), "en")
         _temperatureUnit.value = repository.fetchData(SharedKeys.DEGREE.toString(),"Celsius")
     }
-
 
     override fun getFavoriteCities() {
         try {

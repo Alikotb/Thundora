@@ -112,6 +112,7 @@ fun FavoriteScreen(
     val temperatureUnit = getDegree(getLanguage(language), temp)
     val favoriteCities by viewModel.favoriteCities.collectAsStateWithLifecycle()
     viewModel.getFavoriteCities()
+    viewModel.fetchSettings()
     when (favoriteCities) {
         is Response.Error -> {
             Error()        }
