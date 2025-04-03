@@ -1,17 +1,17 @@
 package com.example.thundora.view.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.domain.model.api.ApiResponse
 import com.example.thundora.domain.model.api.Response
 import com.example.thundora.domain.model.view.SharedKeys
-import com.example.thundora.data.repositary.RepositoryImpl
-import com.example.thundora.utils.getLanguage
 import com.example.thundora.utils.getTemperatureUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class HomeViewModel(private val repo: RepositoryImpl) : ViewModel(),IHomeViewModel {
 
@@ -34,7 +34,7 @@ class HomeViewModel(private val repo: RepositoryImpl) : ViewModel(),IHomeViewMod
 
 
      override fun fetchSettings() {
-        _language.value = repo.fetchData(SharedKeys.LANGUAGE.toString(), "en")
+        _language.value = Locale.getDefault().language
         _temperatureUnit.value = repo.fetchData(SharedKeys.DEGREE.toString(), getTemperatureUnit("Celsius"))
         _units.value = repo.fetchData(SharedKeys.SPEED_UNIT.toString(), "metric")
         _latitude.value = repo.fetchData(SharedKeys.HOME_LAT.toString(), "0.0").toDouble()
@@ -44,7 +44,7 @@ class HomeViewModel(private val repo: RepositoryImpl) : ViewModel(),IHomeViewMod
     override fun getForecast() {
         viewModelScope.launch {
             try {
-                repo.getApiForecast(_latitude.value ,_longitude.value, _temperatureUnit.value,getLanguage( _language.value))
+                repo.getApiForecast(_latitude.value ,_longitude.value, _temperatureUnit.value, _language.value)
                     .catch {
                         _messageState.emit(it.message ?: "Unknown error")
                     }

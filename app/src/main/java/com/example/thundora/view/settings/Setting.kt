@@ -3,6 +3,7 @@ package com.example.thundora.view.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.remote.api.ApiClient
 import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.domain.model.LanguagesEnum
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.utils.getTemperatureUnit
 import com.example.thundora.utils.isInternetAvailable
@@ -130,10 +132,13 @@ fun LanguageSelectionChips(viewModel: SettingsViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+                Log.d("TAG", "LanguageSelectionChips: ${selectedOption}")
                 listOf(
-                    stringResource(id = R.string.language_english),
-                    stringResource(id = R.string.language_arabic)
-                ).forEach { option ->
+                    LanguagesEnum.getValue(LanguagesEnum.ENGLISH.code),
+                    LanguagesEnum.getValue(LanguagesEnum.ARABIC.code),
+                    LanguagesEnum.getValue(LanguagesEnum.DEFAULT.code),
+
+                    ).forEach { option ->
                     val isSelected = option == selectedOption
                     val chipColor = if (isSelected) Color(0xFF1565C0) else Color(0xFFBBDEFB)
                     val textColor = if (isSelected) Color.White else Color.Black

@@ -2,7 +2,9 @@
 
 package com.example.thundora.view.home
 
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -80,13 +82,12 @@ import com.example.thundora.utils.DateTimeHelper
 import com.example.thundora.utils.dailyForecasts
 import com.example.thundora.utils.formatNumberBasedOnLanguage
 import com.example.thundora.utils.getDegree
-import com.example.thundora.utils.getLanguage
 import com.example.thundora.utils.getWindSpeed
+import com.example.thundora.utils.isInternetAvailable
 import com.example.thundora.view.components.LoadingScreen
 import com.example.thundora.view.components.getBackgroundColor
 import com.example.thundora.view.components.getIcon
 import com.example.thundora.view.components.getWeatherColors
-import com.example.thundora.utils.isInternetAvailable
 import com.example.thundora.view.home.viewmodel.HomeFactory
 import com.example.thundora.view.home.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -94,6 +95,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -119,9 +121,9 @@ fun HomeScreen(
 
     val language by viewModel.language.collectAsStateWithLifecycle()
     val temp by viewModel.temperatureUnit.collectAsStateWithLifecycle()
-    val temperatureUnit = getDegree(getLanguage(language), temp)
+    val temperatureUnit = getDegree(language, temp)
     val wind by viewModel.units.collectAsStateWithLifecycle()
-    val windSpeedUnit = getWindSpeed(getLanguage(language), wind)
+    val windSpeedUnit = getWindSpeed(language, wind)
 
     val apiForecast by viewModel.forecast.collectAsStateWithLifecycle()
 

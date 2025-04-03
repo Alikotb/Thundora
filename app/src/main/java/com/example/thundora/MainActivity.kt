@@ -65,12 +65,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.domain.model.LanguagesEnum
 import com.example.thundora.domain.model.view.BottomNAvigationBar
 import com.example.thundora.domain.model.view.ScreensRout
 import com.example.thundora.domain.model.view.SharedKeys
 import com.example.thundora.services.AlarmReceiver
-import com.example.thundora.data.local.sharedpreference.SharedPreference
-import com.example.thundora.utils.getLanguage
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.utils.ConnectivityObserver
 import com.example.thundora.view.map.GPSLocation
@@ -104,16 +104,13 @@ class MainActivity : ComponentActivity() {
         notificationManager.cancelAll()
 
         val lang =
-            getLanguage(
-                sharedPref.fetchData(
-                    SharedKeys.LANGUAGE.toString(),
-                    Locale.getDefault().language
-
-                )
-            )
-
-        applyLanguage(lang)
-
+            sharedPref.fetchData(SharedKeys.LANGUAGE.toString(), LanguagesEnum.DEFAULT.code)
+        if(lang== LanguagesEnum.DEFAULT.code)
+        {
+            applyLanguage(this.resources.configuration.locales[0].language)
+        }else {
+            applyLanguage(lang)
+        }
         connectivityObserver = ConnectivityObserver(applicationContext)
         enableEdgeToEdge()
         setLightStatusBar(true)
@@ -340,9 +337,6 @@ class MainActivity : ComponentActivity() {
         isOnline: Boolean
 
     ) {
-        val systemBarHeight = WindowInsets.systemBars
-            .asPaddingValues()
-            .calculateTopPadding()
         Scaffold(
 
             modifier = Modifier.fillMaxSize(),

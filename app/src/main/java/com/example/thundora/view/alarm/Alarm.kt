@@ -92,6 +92,7 @@ import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.services.AlarmScheduler
 import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.services.scheduleSilentAlarm
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmFactory
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmViewModel
@@ -350,6 +351,7 @@ fun AddNewAlertBottomSheet(
     var endTime by remember { mutableStateOf(LocalTime.now().plusMinutes(2)) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val alarmScheduler = AlarmScheduler(context)
+    val alarmEntity = remember { mutableStateOf(true) }
 
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { interaction ->
@@ -402,14 +404,21 @@ fun AddNewAlertBottomSheet(
             Row {
                 RadioButton(
                     selected = selectedOption == context.getString(R.string.alarm),
-                    onClick = { selectedOption = context.getString(R.string.alarm) })
+                    onClick = {
+                        selectedOption = context.getString(R.string.alarm)
+                        alarmEntity.value = true
+                    }
+                )
                 Text("Alarm", color = Color.White)
 
                 Spacer(Modifier.width(8.dp))
 
                 RadioButton(
                     selected = selectedOption == context.getString(R.string.notification),
-                    onClick = { selectedOption = context.getString(R.string.notification) })
+                    onClick = {
+                        selectedOption = context.getString(R.string.notification)
+                        alarmEntity.value = false
+                    })
                 Text(context.getString(R.string.notification), color = Color.White)
             }
         }
@@ -434,27 +443,43 @@ fun AddNewAlertBottomSheet(
                         }
 
                         endTime.isBefore(startTime) -> {
-                            errorMessage = context.getString(R.string.start_time_must_be_in_the_future)
+                            errorMessage =
+                                context.getString(R.string.start_time_must_be_in_the_future)
 
                         }
 
                         else -> {
-                            errorMessage = null
-                            val alarmEntity = AlarmEntity(
-                                id = System.currentTimeMillis().toInt(),
-                                time = startTime,
-                                duration = Duration.between(startTime, endTime)
-                                    .toMinutes().toInt() * 60,
+                            if (alarmEntity.value) {
+                                errorMessage = null
+                                val alarmEntity = AlarmEntity(
+                                    id = System.currentTimeMillis().toInt(),
+                                    time = startTime,
+                                    duration = Duration.between(startTime, endTime)
+                                        .toMinutes().toInt() * 60,
 
-                                label = context.getString(R.string.thundora_app)
-                            )
-                            alarmViewModel.addAlarm(alarmEntity)
-                            alarmScheduler.scheduleAlarm(alarmEntity)
-                            onOKey(startTime, endTime)
+                                    label = context.getString(R.string.thundora_app),
+                                )
+                                alarmViewModel.addAlarm(alarmEntity)
+                                alarmScheduler.scheduleAlarm(alarmEntity)
+                                onOKey(startTime, endTime)
+                            } else {
+                                errorMessage = null
+                                val alarmEntity = AlarmEntity(
+                                    id = System.currentTimeMillis().toInt(),
+                                    time = startTime,
+                                    duration = Duration.between(startTime, endTime)
+                                        .toMinutes().toInt() * 60,
+
+                                    label = context.getString(R.string.thundora_app),
+                                )
+                                alarmViewModel.addAlarm(alarmEntity)
+                                scheduleSilentAlarm(alarmEntity, context)
+                                onOKey(startTime, endTime)
+                            }
                         }
                     }
                 },
-                modifier = Modifier.weight(1f),
+                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
             ) {
@@ -520,7 +545,10 @@ fun TimePickerExample(
         }
         negativeButton(stringResource(R.string.cancel)) { onDismiss() }
     }) {
-        timepicker(initialTime = pickedTime, title = stringResource(R.string.pick_a_time)) { pickedTime = it }
+        timepicker(
+            initialTime = pickedTime,
+            title = stringResource(R.string.pick_a_time)
+        ) { pickedTime = it }
     }
 }
 
@@ -553,7 +581,6 @@ fun ClickableOutlinedTextField(
 }
 
 
-
 @Composable
 fun AlarmCard(time: String) {
     Card(
@@ -583,7 +610,7 @@ fun AlarmCard(time: String) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stringResource(R.string.end_time) +time.substringAfter(","),
+                    text = stringResource(R.string.end_time) + time.substringAfter(","),
                     fontSize = 14.sp,
                     color = Color.White
                 )
