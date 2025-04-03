@@ -1,3 +1,55 @@
 <resources>
     <string name="app_name">Thundora</string>
+    <string name="unknown">Unknown</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="today">Today</string>
+    <string name="close">Close</string>
+    <string name="temp_unit">Temp Unit</string>
+    <string name="celsius_c">Celsius °C</string>
+    <string name="fahrenheit_f">Fahrenheit °F</string>
+    <string name="kelvin_k">Kelvin °K</string>
+    <string name="location">Location</string>
+    <string name="gps">GPS</string>
+    <string name="map">Map</string>
+    <string name="wend_speed_unit">Wend Speed Unit</string>
+    <string name="select_language">Select Language</string>
+    <string name="m_s">m/s</string>
+    <string name="mile_h">mile/h</string>
+    <string name="daily_forecast">Daily Forecast</string>
+    <string name="favorite_location">Favorite Location</string>
+    <string name="undo">Undo</string>
+    <string name="weather_icon2">Weather Icon</string>
+    <string name="temperature">Temperature</string>
+    <string name="alarm">Alarm</string>
+    <string name="setting">Setting</string>
+    <string name="search">Search</string>
+    <string name="alarm_schedule">Alarm Schedule</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="start_duration">Start duration</string>
+    <string name="end_duration">End duration</string>
+    <string name="alarm_deleted">Alarm deleted</string>
+    <string name="start_time_must_be_in_the_future">Start time must be in the future!</string>
+    <string name="thundora_app">Thundora App</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="pick_a_time">Pick a time</string>
+    <string name="no_internet_connect_to_network_please">No internet connect to network please</string>
+    <string name="hpa">" hPa"</string>
+    <string name="norain">NoRain</string>
+    <string name="snooze">Snooze</string>
+    <string name="start_at">"Start at : "</string>
+    <string name="end_at">"End at : "</string>
+    <string name="to"><![CDATA[" -> "]]></string>
+    <string name="add_new_alert">Add New Alert</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time1">End Time</string>
+    <string name="favorite">Favorite</string>
+    <string name="home">Home</string>
+
+    <string name="no_weather_update_available">No weather update available 🌍</string>
+    <string name="no_internet_connection">No internet Connection</string>
+    <string name="your_favorites_list_is_currently_empty_start_adding_meals_you_love_so_you_can_easily_find_them_later">Your favorites list is currently empty. Start adding meals you love so you can easily find them later!</string>
+    <string name="you_don_t_have_any_alarms_set_yet_add_one_now_to_stay_on_track_and_never_miss_an_important_moment">You don’t have any alarms set yet. Add one now to stay on track and never miss an important moment!</string>
 </resources>
+

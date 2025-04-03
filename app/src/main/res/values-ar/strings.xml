@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Thundora</string>
+    <string name="unknown">غير معروف</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="today">اليوم</string>
+    <string name="close">أغلق</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_english">English</string>
+    <string name="temp_unit">وحدة قياس الحرارة</string>
+    <string name="celsius_c">سيليزيوس س</string>
+    <string name="fahrenheit_f">فهرنهيت ف</string>
+    <string name="kelvin_k">كيلفن ك</string>
+    <string name="location">الموقع</string>
+    <string name="gps">جي بي اس</string>
+    <string name="map">الخريطة</string>
+    <string name="wend_speed_unit">وحدة قياس الرياح</string>
+    <string name="select_language">إختر اللغة</string>
+    <string name="m_s">م/ث</string>
+    <string name="mile_h">ميل/س</string>
+    <string name="daily_forecast">المناخ</string>
+    <string name="hello_alarm">مرحبا بالمنبه</string>
+    <string name="no_favorite_cities">لا توجد مدن مفضلة</string>
+    <string name="favorite_location">الموقع المفضل</string>
+    <string name="undo">تراجع</string>
+    <string name="item_deleted">تم حذف العنصر</string>
+    <string name="weather_icon2">أيقونة الطقس</string>
+    <string name="temperature">درجة الحرارة</string>
+    <string name="home">الرئيسية</string>
+    <string name="alarm">المنبه</string>
+    <string name="favorite">المفضلة</string>
+    <string name="setting">الإعدادات</string>
+    <string name="search">بحث</string>
+    <string name="favorite0">المفضلة</string>
+    <string name="location0">الموقع</string>
+    <string name="toggle_fab">تبديل الزر العائم</string>
+    <string name="close_">إغلاق</string>
+    <string name="add_item">إضافة عنصر</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="contact_us">اتصل بنا</string>
+    <string name="email_">البريد الإلكتروني</string>
+    <string name="facebook">فيسبوك</string>
+    <string name="linkedin">لينكدإن</string>
+    <string name="alarm_schedule">جدول التنبيه</string>
+    <string name="dismiss">إلغاء</string>
+    <string name="start_duration">مدة البدء</string>
+    <string name="end_duration">مدة الانتهاء</string>
+    <string name="alarm_deleted">تم حذف التنبيه</string>
+    <string name="notification">إشعار</string>
+    <string name="start_time_must_be_in_the_future">يجب أن يكون وقت البدء في المستقبل!</string>
+    <string name="thundora_app">تطبيق ثاندورا</string>
+    <string name="save">حفظ</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="pick_a_time">اختر وقتًا</string>
+    <string name="starting_time">وقت البدء:</string>
+    <string name="end_time">وقت الانتهاء:</string>
+    <string name="no_internet_connect_to_network_please">لا يوجد اتصال بالإنترنت، يرجى الاتصال بالشبكة</string>
+    <string name="hpa">" هكتوباسكال"</string>
+    <string name="norain">لا مطر</string>
+    <string name="defaultlang">لغة النظام</string>
+    <string name="snooze">إغفاء</string>
+    <string name="alarm_snoozed">تم تأجيل المنبه لمدة دقيقة واحدة</string>
+    <string name="start_at">"البداية في : "</string>
+    <string name="end_at">"النهاية في : "</string>
+    <string name="to"><![CDATA[" ← "]]></string>
+    <string name="settings">الإعدادات</string>
+
+    <string name="add_new_alert">إضافة تنبيه جديد</string>
+    <string name="start_time">وقت البدء</string>
+    <string name="end_time1">وقت الانتهاء</string>
+    <string name="notify_me_by">إشعار عبر</string>
+    <string name="no_weather_update_available">لا يوجد تحديث لحالة الطقس 🌍</string>
+    <string name="no_internet_connection">لا يوجد اتصال بالإنترنت</string>
+    <string name="your_favorites_list_is_currently_empty_start_adding_meals_you_love_so_you_can_easily_find_them_later">قائمة المفضلة لديك فارغة حاليًا. ابدأ بإضافة الوجبات التي تحبها حتى تتمكن من العثور عليها بسهولة لاحقًا!</string>
+
+    <string name="you_don_t_have_any_alarms_set_yet_add_one_now_to_stay_on_track_and_never_miss_an_important_moment">لم تقم بضبط أي منبهات بعد. أضف واحدًا الآن لتظل على المسار الصحيح ولا تفوّت أي لحظة مهمة!</string>
+
+
+</resources>
