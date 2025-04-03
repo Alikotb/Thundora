@@ -5,7 +5,6 @@
     <string name="weather_icon">Weather Icon</string>
     <string name="today">اليوم</string>
     <string name="close">أغلق</string>
-    <string name="language">اللغة</string>
     <string name="language_arabic">العربية</string>
     <string name="language_english">English</string>
     <string name="temp_unit">وحدة قياس الحرارة</string>
@@ -73,5 +72,9 @@
     <string name="notify_me_by">إشعار عبر</string>
     <string name="no_weather_update_available">لا يوجد تحديث لحالة الطقس 🌍</string>
     <string name="no_internet_connection">لا يوجد اتصال بالإنترنت</string>
+    <string name="your_favorites_list_is_currently_empty_start_adding_meals_you_love_so_you_can_easily_find_them_later">قائمة المفضلة لديك فارغة حاليًا. ابدأ بإضافة الوجبات التي تحبها حتى تتمكن من العثور عليها بسهولة لاحقًا!</string>
+
+    <string name="you_don_t_have_any_alarms_set_yet_add_one_now_to_stay_on_track_and_never_miss_an_important_moment">لم تقم بضبط أي منبهات بعد. أضف واحدًا الآن لتظل على المسار الصحيح ولا تفوّت أي لحظة مهمة!</string>
+
 
 </resources>

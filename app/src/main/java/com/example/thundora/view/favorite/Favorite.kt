@@ -10,12 +10,6 @@ package com.example.thundora.view.favorite
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,27 +26,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,12 +65,13 @@ import com.example.thundora.utils.formatNumberBasedOnLanguage
 import com.example.thundora.utils.getDegree
 import com.example.thundora.utils.transferUnit
 import com.example.thundora.view.components.Empty
+import com.example.thundora.view.components.Error
 import com.example.thundora.view.components.LoadingScreen
+import com.example.thundora.view.components.SwipeToDeleteContainer
 import com.example.thundora.view.components.getIcon
 import com.example.thundora.view.components.getRandomGradient
 import com.example.thundora.view.favorite.viewModel.FavoriteFactory
 import com.example.thundora.view.favorite.viewModel.FavoriteViewModel
-import kotlinx.coroutines.delay
 import java.util.Locale
 
 
@@ -118,7 +104,8 @@ fun FavoriteScreen(
     viewModel.fetchSettings()
     when (favoriteCities) {
         is Response.Error -> {
-            Error()        }
+            Error()
+        }
 
         Response.Loading -> {
             LoadingScreen()
@@ -126,7 +113,7 @@ fun FavoriteScreen(
 
         is Response.Success -> {
             if ((favoriteCities as Response.Success).data.isEmpty())
-                Empty()
+                Empty(stringResource(R.string.your_favorites_list_is_currently_empty_start_adding_meals_you_love_so_you_can_easily_find_them_later))
             else {
                 FavoritePage(
                     (favoriteCities as Response.Success).data,
@@ -192,7 +179,7 @@ fun FavoritePage(
                     item = fav,
                     onDelete = {
                         viewModel.deleteFavoriteCity(fav.name)
-                               },
+                    },
                     onRestore = { viewModel.addFavoriteCity(fav) },
                     snackBarHostState = `snack-barHostState`
                 ) { weatherItem -> FavoriteCard(weatherItem, temperatureUnit, navToDetails) }
@@ -282,77 +269,4 @@ fun FavoriteCard(
     }
 }
 
-@Composable
-fun <T> SwipeToDeleteContainer(
-    item: T,
-    onDelete: (T) -> Unit,
-    onRestore: (T) -> Unit,
-    snackBarHostState: SnackbarHostState,
-    animationDuration: Int = 500,
-    content: @Composable (T) -> Unit
-) {
-    var isRemoved by remember { mutableStateOf(false) }
-    val currentItem by rememberUpdatedState(item)
 
-    val state = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                isRemoved = true
-                true
-            } else {
-                false
-            }
-        }
-    )
-
-    val context = LocalContext.current
-    LaunchedEffect(isRemoved, currentItem) {
-        if (isRemoved) {
-            snackBarHostState.currentSnackbarData?.dismiss()
-            val result = snackBarHostState.showSnackbar(
-                message ="item deleted successfully",
-                actionLabel = context.getString(R.string.undo),
-                duration = SnackbarDuration.Short
-            )
-
-            if (result == SnackbarResult.ActionPerformed) {
-                onRestore(currentItem)
-                isRemoved = false
-
-                state.snapTo(SwipeToDismissBoxValue.Settled)
-            } else {
-                delay(animationDuration.toLong())
-                onDelete(currentItem)
-            }
-        }
-    }
-
-    AnimatedVisibility(
-        visible = !isRemoved,
-        enter = expandVertically(
-            animationSpec = tween(durationMillis = animationDuration),
-            expandFrom = Alignment.Top
-        ) + fadeIn(),
-        exit = shrinkVertically(
-            animationSpec = tween(durationMillis = animationDuration),
-            shrinkTowards = Alignment.Top
-        ) + fadeOut()
-    ) {
-        SwipeToDismissBox(
-            state = rememberSwipeToDismissBoxState(
-                confirmValueChange = { value ->
-                    if (value == SwipeToDismissBoxValue.EndToStart) {
-                        isRemoved = true
-                        true
-                    } else {
-                        false
-                    }
-                }
-            ),
-            backgroundContent = { },
-            enableDismissFromStartToEnd = false
-        ) {
-            content(currentItem)
-        }
-    }
-}

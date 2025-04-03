@@ -1,10 +1,10 @@
-package com.example.thundora.view.map
+package com.example.thundora.view.map.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thundora.domain.model.view.SharedKeys
 import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.domain.model.view.SharedKeys
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
@@ -24,7 +24,7 @@ import kotlin.coroutines.suspendCoroutine
 class MapViewModel(
     private val client: PlacesClient,
     private val repo: RepositoryImpl
-) : ViewModel(),IMapViewModel {
+) : ViewModel(), IMapViewModel {
     private val _markerState = MutableStateFlow(MarkerState(LatLng(0.0, 0.0)))
     override val markerState: StateFlow<MarkerState> = _markerState
 

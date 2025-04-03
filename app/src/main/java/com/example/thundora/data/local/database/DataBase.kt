@@ -10,7 +10,7 @@ import com.example.thundora.domain.model.api.ApiResponse
 import com.example.thundora.domain.model.api.Weather
 
 @Database(entities =  [AlarmEntity::class, Weather::class,ApiResponse::class], version =2 )
-@TypeConverters(ApiResponseConverter::class, Converters::class) // ✅ Add here
+@TypeConverters(ApiResponseConverter::class, Converters::class)
  abstract class WeatherDataBase : RoomDatabase(){
     abstract fun getForecastDao(): Dao
     companion object{

@@ -1,4 +1,4 @@
-package com.example.thundora.view.map
+package com.example.thundora.view.map.viewmodel
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface IMapViewModel {
     val markerState: StateFlow<MarkerState>
-
     fun updateMarkerPosition(latLng: LatLng)
     fun setHomeLocation(latLng: LatLng)
     suspend fun getAddressPredictions(inputString: String): List<AutocompletePrediction>

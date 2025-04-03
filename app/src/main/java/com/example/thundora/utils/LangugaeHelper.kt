@@ -1,5 +1,8 @@
 package com.example.thundora.utils
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import java.util.Locale
 
 fun convertToArabicNumbers(number: String): String {
@@ -11,3 +14,12 @@ fun formatNumberBasedOnLanguage(number: String): String {
         val language = Locale.getDefault().language
         return if (language == "ar") convertToArabicNumbers(number) else number
  }
+
+
+
+fun restartActivity(context: Context) {
+    val intent = (context as? Activity)?.intent
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+    (context as? Activity)?.finish()
+}

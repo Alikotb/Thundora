@@ -1,7 +1,5 @@
 package com.example.thundora.utils
 
-
-
 fun getDegree(language: String, degree: String): String {
     return when {
         language == "en" && degree == "metric" -> "C"

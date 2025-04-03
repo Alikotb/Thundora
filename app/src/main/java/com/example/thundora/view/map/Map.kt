@@ -61,6 +61,8 @@ import com.example.thundora.data.remote.api.ApiClient
 import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
 import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.view.map.viewmodel.MapFactory
+import com.example.thundora.view.map.viewmodel.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.libraries.places.api.Places

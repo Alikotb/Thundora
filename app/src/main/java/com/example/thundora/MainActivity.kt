@@ -15,12 +15,9 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -73,9 +70,9 @@ import com.example.thundora.domain.model.view.SharedKeys
 import com.example.thundora.services.AlarmReceiver
 import com.example.thundora.ui.theme.DeepBlue
 import com.example.thundora.utils.ConnectivityObserver
-import com.example.thundora.view.map.GPSLocation
-import com.example.thundora.view.map.GPSLocation.getLocation
-import com.example.thundora.view.map.GPSLocation.isLocationEnabled
+import com.example.thundora.utils.GPSLocation
+import com.example.thundora.utils.GPSLocation.getLocation
+import com.example.thundora.utils.GPSLocation.isLocationEnabled
 import com.example.thundora.view.navigation.SetUpNavHost
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices

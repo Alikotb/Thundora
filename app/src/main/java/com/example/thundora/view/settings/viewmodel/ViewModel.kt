@@ -1,4 +1,4 @@
-package com.example.thundora.view.settings
+package com.example.thundora.view.settings.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

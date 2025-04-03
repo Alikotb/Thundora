@@ -1,4 +1,4 @@
-package com.example.thundora.view.map
+package com.example.thundora.view.map.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

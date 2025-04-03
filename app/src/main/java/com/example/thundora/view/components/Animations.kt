@@ -5,20 +5,27 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.RenderMode
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -56,7 +63,6 @@ fun LoadingScreen() {
     }
 }
 
-@Preview
 @Composable
 fun Error() {
     val scale = remember { Animatable(0f) }
@@ -94,7 +100,26 @@ fun Error() {
 
 
 @Composable
-fun Empty() {
+fun AlarmLottie() {
+
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.alaram))
+
+
+    LottieAnimation(
+        composition = composition,
+        iterations = LottieConstants.IterateForever,
+        modifier = Modifier
+            .size(54.dp)
+            .offset(x = 8.dp),
+        contentScale = ContentScale.Crop,
+        renderMode = RenderMode.AUTOMATIC
+    )
+}
+
+
+
+@Composable
+fun Empty(msg: String) {
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.panda))
     LaunchedEffect(key1 = true) {
@@ -119,29 +144,20 @@ fun Empty() {
 
         val lottieSize = screenWidth * 0.7f
 
-        LottieAnimation(
-            composition = composition.value,
-            iterations = LottieConstants.IterateForever,
-            modifier = Modifier.size(lottieSize),
-            renderMode = RenderMode.AUTOMATIC
-        )
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+
+        ){
+            LottieAnimation(
+                composition = composition.value,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier.size(lottieSize),
+                renderMode = RenderMode.AUTOMATIC
+            )
+            Text(msg, fontSize = 18.sp, color = Color.LightGray, modifier =  Modifier.padding(horizontal = 24.dp))
+        }
     }
 }
 
 
-@Composable
-fun AlarmLottie() {
 
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.alaram))
-
-
-    LottieAnimation(
-        composition = composition,
-        iterations = LottieConstants.IterateForever,
-        modifier = Modifier
-            .size(54.dp)
-            .offset(x = 8.dp),
-        contentScale = ContentScale.Crop,
-        renderMode = RenderMode.AUTOMATIC
-    )
-}

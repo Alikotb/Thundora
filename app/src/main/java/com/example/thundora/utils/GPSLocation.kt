@@ -1,5 +1,6 @@
-package com.example.thundora.view.map
+package com.example.thundora.utils
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -31,11 +32,11 @@ object GPSLocation {
     fun checkPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(
                     context,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
 
     }
