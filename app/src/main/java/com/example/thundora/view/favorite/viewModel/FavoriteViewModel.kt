@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class FavoriteViewModel(private val repository: RepositoryImpl) : ViewModel(),IFavoriteViewModel  {
     private val _favoriteCities = MutableStateFlow<Response<List<Weather>>>(Response.Loading)
@@ -27,7 +28,7 @@ class FavoriteViewModel(private val repository: RepositoryImpl) : ViewModel(),IF
 
 
     fun fetchSettings() {
-        _language.value = repository.fetchData(SharedKeys.LANGUAGE.toString(), "en")
+        _language.value = Locale.getDefault().language
         _temperatureUnit.value = repository.fetchData(SharedKeys.DEGREE.toString(),"Celsius")
     }
 

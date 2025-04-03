@@ -19,10 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -82,7 +85,25 @@ fun SettingScreen(floatingFlag: MutableState<Boolean>, navToMap: () -> Unit) {
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(48.dp))
+    Spacer(Modifier.height(48.dp))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+                tint = Color.White
+            )
+            Text(
+                text = stringResource(R.string.setting),
+                color = Color.White,
+                fontSize = 20.sp
+            )
+        }
         LanguageSelectionChips(viewModel)
         LocationSelectionChips(viewModel, navToMap)
         TempSelectionChips(viewModel)
@@ -182,7 +203,7 @@ fun TempSelectionChips(viewModel: SettingsViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(4.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically

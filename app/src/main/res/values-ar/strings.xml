@@ -60,5 +60,18 @@
     <string name="hpa">" هكتوباسكال"</string>
     <string name="norain">لا مطر</string>
     <string name="defaultlang">لغة النظام</string>
+    <string name="snooze">إغفاء</string>
+    <string name="alarm_snoozed">تم تأجيل المنبه لمدة دقيقة واحدة</string>
+    <string name="start_at">"البداية في : "</string>
+    <string name="end_at">"النهاية في : "</string>
+    <string name="to"><![CDATA[" ← "]]></string>
+    <string name="settings">الإعدادات</string>
+
+    <string name="add_new_alert">إضافة تنبيه جديد</string>
+    <string name="start_time">وقت البدء</string>
+    <string name="end_time1">وقت الانتهاء</string>
+    <string name="notify_me_by">إشعار عبر</string>
+    <string name="no_weather_update_available">لا يوجد تحديث لحالة الطقس 🌍</string>
+    <string name="no_internet_connection">لا يوجد اتصال بالإنترنت</string>
 
 </resources>

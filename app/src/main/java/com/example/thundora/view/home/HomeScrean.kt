@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -90,6 +92,8 @@ import com.example.thundora.view.components.getIcon
 import com.example.thundora.view.components.getWeatherColors
 import com.example.thundora.view.home.viewmodel.HomeFactory
 import com.example.thundora.view.home.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -250,6 +254,21 @@ fun WeatherCard(
     val ctx = LocalContext.current
     val iconCode = weatherState?.weather?.firstOrNull()?.icon ?: "01d"
     val (backgroundColor, textColor) = getWeatherColors(iconCode)
+    val messageState = remember { MutableSharedFlow<String>() }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(messageState) {
+        messageState.collectLatest { message ->
+            Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun showToast(message: String) {
+        coroutineScope.launch {
+            messageState.emit(message)
+        }
+    }
+
 
     Card(
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
@@ -279,11 +298,7 @@ fun WeatherCard(
                                 if (isInternetAvailable()) {
                                     navToMaps()
                                 } else {
-                                    Toast.makeText(
-                                        ctx,
-                                        ctx.getString(R.string.no_internet_connect_to_network_please),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    showToast(ctx.getString(R.string.no_internet_connect_to_network_please))
 
                                 }
                             }
@@ -417,13 +432,13 @@ fun WeatherCard(
 
                 )
                 WeatherInfo(
-                    value = weatherState?.main?.sea_level?.let {
+                    value = weatherState?.clouds?.all?.let {
                         formatNumberBasedOnLanguage(
                             it.toString()
                         )
                     } ?: "--",
-                    unit = "",
-                    icon = ImageVector.vectorResource(id = R.drawable.sea),
+                    unit = "%",
+                    icon = Icons.Default.Cloud,
                     iconTint = textColor,
                     color = textColor
                 )
@@ -754,7 +769,8 @@ fun WeatherForecastBottomSheet(
                         )
                         WeatherInfo(
                             value = formatNumberBasedOnLanguage(
-                                weatherState?.rain?.`3h`?.toString() ?: stringResource(R.string.norain)
+                                weatherState?.rain?.`3h`?.toString()
+                                    ?: stringResource(R.string.norain)
                             ),
                             unit = "",
                             icon = ImageVector.vectorResource(id = R.drawable.ic_humidity),

@@ -14,7 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,7 +28,7 @@ import com.example.thundora.R
 
 
 @Composable
-fun LoadingScreen(){
+fun LoadingScreen() {
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.camel))
     LaunchedEffect(key1 = true) {
@@ -58,7 +58,7 @@ fun LoadingScreen(){
 
 @Preview
 @Composable
-fun Error(){
+fun Error() {
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.error))
     LaunchedEffect(key1 = true) {
@@ -94,7 +94,7 @@ fun Error(){
 
 
 @Composable
-fun Empty(){
+fun Empty() {
     val scale = remember { Animatable(0f) }
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.panda))
     LaunchedEffect(key1 = true) {
@@ -131,26 +131,17 @@ fun Empty(){
 
 @Composable
 fun AlarmLottie() {
-    val scale = remember { Animatable(0f) }
+
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.alaram))
 
-    LaunchedEffect(Unit) {
-        scale.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(
-                durationMillis = 800,
-                easing = { OvershootInterpolator(2f).getInterpolation(it) }
-            )
-        )
-    }
 
     LottieAnimation(
         composition = composition,
         iterations = LottieConstants.IterateForever,
         modifier = Modifier
-            .size(100.dp)
-            .scale(scale.value)
+            .size(54.dp)
             .offset(x = 8.dp),
+        contentScale = ContentScale.Crop,
         renderMode = RenderMode.AUTOMATIC
     )
 }

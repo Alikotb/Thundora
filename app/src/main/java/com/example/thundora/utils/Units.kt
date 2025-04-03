@@ -1,8 +1,5 @@
 package com.example.thundora.utils
 
-import android.content.Context
-import android.os.Build
-import java.util.Locale
 
 
 fun getDegree(language: String, degree: String): String {

@@ -73,9 +73,9 @@ class AlarmReceiver : BroadcastReceiver() {
                                 "en",
                                 "metric"
                             ).body()?.weather?.firstOrNull()?.icon?.getWeatherNotification()
-                            ?: "No weather update available 🌍"
+                            ?: context.getString(R.string.no_weather_update_available)
                     } catch (e: Exception) {
-                        "No weather update available 🌍"
+                        context.getString(R.string.no_weather_update_available)
                     }
 
                     playAlarmSound(context)
@@ -84,7 +84,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         id,
                         alarmLabel,
                         duration,
-                        if (isInternetAvailable()) description else "No internet Connection"
+                        if (isInternetAvailable()) description else context.getString(R.string.no_internet_connection)
                     )
                 }
             }

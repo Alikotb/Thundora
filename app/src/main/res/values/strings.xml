@@ -61,5 +61,15 @@
     <string name="defaultlang">Default</string>
     <string name="snooze">Snooze</string>
     <string name="alarm_snoozed">Alarm snoozed for 1 minute</string>
+    <string name="start_at">"Start at : "</string>
+    <string name="end_at">"End at : "</string>
+    <string name="to"><![CDATA[" -> "]]></string>
+    <string name="settings">Settings</string>
+    <string name="add_new_alert">Add New Alert</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time1">End Time</string>
+    <string name="notify_me_by">Notify me by</string>
+    <string name="no_weather_update_available">No weather update available 🌍</string>
+    <string name="no_internet_connection">No internet Connection</string>
 </resources>
 

@@ -31,7 +31,7 @@ class NotificationWorker(
             val channel = NotificationChannel(
                 channelId,
                 "Silent Alarms",
-                NotificationManager.IMPORTANCE_LOW // No sound
+                NotificationManager.IMPORTANCE_LOW
             )
             notificationManager.createNotificationChannel(channel)
         }

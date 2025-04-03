@@ -7,6 +7,12 @@ package com.example.thundora.view.alarm
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,24 +30,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.OutlinedTextField
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarDuration
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHost
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarHostState
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.SnackbarResult
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -83,23 +82,24 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thundora.R
-import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.local.database.WeatherDataBase
-import com.example.thundora.domain.model.api.AlarmEntity
-import com.example.thundora.domain.model.api.Response
+import com.example.thundora.data.local.sharedpreference.SharedPreference
+import com.example.thundora.data.local.source.LocalDataSource
 import com.example.thundora.data.remote.api.ApiClient
 import com.example.thundora.data.remote.remotedatasource.RemoteDataSource
 import com.example.thundora.data.repositary.RepositoryImpl
+import com.example.thundora.domain.model.api.AlarmEntity
+import com.example.thundora.domain.model.api.Response
 import com.example.thundora.services.AlarmScheduler
-import com.example.thundora.data.local.sharedpreference.SharedPreference
 import com.example.thundora.services.scheduleSilentAlarm
 import com.example.thundora.ui.theme.DarkBlue
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmFactory
 import com.example.thundora.view.alarm.alarmviewmodel.AlarmViewModel
-import com.example.thundora.view.favorite.SwipeToDeleteContainer
 import com.example.thundora.view.components.AlarmLottie
 import com.example.thundora.view.components.Empty
 import com.example.thundora.view.components.LoadingScreen
+import com.example.thundora.view.components.getRandomGradient
+import com.example.thundora.view.favorite.SwipeToDeleteContainer
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
@@ -176,7 +176,7 @@ fun AlarmScreen(
                         .fillMaxSize()
                         .background(color = colorResource(id = R.color.deep_blue)),
                 ) {
-                    PrintAlarms(alarmList, viewModel)
+                    PrintAlarms(alarmList, viewModel,startDuration,endDuration)
                 }
 
                 if (showBottomSheet) {
@@ -230,7 +230,12 @@ fun AlarmScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PrintAlarms(data: List<AlarmEntity>, viewModel: AlarmViewModel) {
+fun PrintAlarms(
+    data: List<AlarmEntity>,
+    viewModel: AlarmViewModel,
+    startDuration: MutableState<String>,
+    endDuration: MutableState<String>
+) {
     val ctx = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -282,7 +287,7 @@ fun PrintAlarms(data: List<AlarmEntity>, viewModel: AlarmViewModel) {
                     },
                     onRestore = { viewModel.addAlarm(fav) },
                     snackBarHostState = snackBarHostState
-                ) { AlarmCard(time = fav.time.toString()) }
+                ) { AlarmCard(startDuration,endDuration) }
             }
             item {
                 Spacer(Modifier.height(200.dp))
@@ -372,9 +377,9 @@ fun AddNewAlertBottomSheet(
             .padding(16.dp)
             .fillMaxWidth()
     ) {
-        Text("Add New Alert", style = MaterialTheme.typography.titleLarge, color = Color.White)
+        Text(stringResource(R.string.add_new_alert), style = MaterialTheme.typography.titleLarge, color = Color.White)
 
-        Text("Start Time", color = Color.White)
+        Text(stringResource(R.string.start_time), color = Color.White)
         ClickableOutlinedTextField(
             startDuration.value,
             interactionSource,
@@ -383,7 +388,7 @@ fun AddNewAlertBottomSheet(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text("End Time", color = Color.White)
+        Text(stringResource(R.string.end_time1), color = Color.White)
         ClickableOutlinedTextField(
             endDuration.value,
             interactionSource2,
@@ -400,7 +405,7 @@ fun AddNewAlertBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            Text("Notify me by", fontSize = 14.sp, color = Color.White)
+            Text(stringResource(R.string.notify_me_by), fontSize = 14.sp, color = Color.White)
             Row {
                 RadioButton(
                     selected = selectedOption == context.getString(R.string.alarm),
@@ -547,9 +552,11 @@ fun TimePickerExample(
     }) {
         timepicker(
             initialTime = pickedTime,
+            is24HourClock = true,
             title = stringResource(R.string.pick_a_time)
         ) { pickedTime = it }
     }
+
 }
 
 
@@ -582,19 +589,22 @@ fun ClickableOutlinedTextField(
 
 
 @Composable
-fun AlarmCard(time: String) {
+fun AlarmCard(
+    startDuration: MutableState<String>,
+    endDuration: MutableState<String>
+) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.dark_blue)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
-            .clickable { }
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(getRandomGradient())
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -603,24 +613,16 @@ fun AlarmCard(time: String) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = stringResource(R.string.starting_time) + time.substringBefore(","),
+                    text = stringResource(R.string.start_at) +startDuration.value+ stringResource(R.string.to) + stringResource(
+                        R.string.end_at
+                    )+endDuration.value,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.end_time) + time.substringAfter(","),
-                    fontSize = 14.sp,
-                    color = Color.White
-                )
+
             }
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.offset(x = 12.dp)
-            ) {
                 AlarmLottie()
-            }
         }
     }
 }
