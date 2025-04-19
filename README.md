@@ -46,10 +46,16 @@
 
 ## Screenshots
 
-![](img/c.jpg)
-![](img/d.jpg)
-![](img/b.jpg)
-![](img/a.jpg)
+
+
+<p float="left">
+  <img src="img/c.jpg" width="35%" />
+  <img src="img/d.jpg" width="35%"  />
+</p>
+<p float="left">
+  <img src="img/b.jpg" width="35%" />
+  <img src="img/a.jpg" width="35%"  />
+</p>
 
 ## Installation & Setup
 1. Clone the repository.
