@@ -46,10 +46,10 @@
 
 ## Screenshots
 
-![](img/c.png)
-![](img/d.png)
-![](img/b.png)
-![](img/a.png)
+![](img/c.jpg)
+![](img/d.jpg)
+![](img/b.jpg)
+![](img/a.jpg)
 
 ## Installation & Setup
 1. Clone the repository.
