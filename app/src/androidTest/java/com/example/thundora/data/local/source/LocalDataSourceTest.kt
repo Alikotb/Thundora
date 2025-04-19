@@ -27,7 +27,6 @@ class LocalDataSourceTest {
     private lateinit var localDataSource: LocalDataSource
     private lateinit var database: WeatherDataBase
     private lateinit var dao: Dao
-
     private lateinit var shared: SharedPreference
 
     @Before

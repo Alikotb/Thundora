@@ -35,6 +35,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,9 +71,9 @@ fun AlarmScreen(
     fabAction: MutableState<() -> Unit>
 ) {
     val ctx = LocalContext.current
-    val startDuration = remember { mutableStateOf(ctx.getString(R.string.start_duration)) }
-    val endDuration = remember { mutableStateOf(ctx.getString(R.string.end_duration)) }
-    val dayAndTime = remember { mutableStateOf("${startDuration.value}, ${endDuration.value}") }
+    val startDuration = rememberSaveable { mutableStateOf(ctx.getString(R.string.start_duration)) }
+    val endDuration = rememberSaveable { mutableStateOf(ctx.getString(R.string.end_duration)) }
+    val dayAndTime = rememberSaveable { mutableStateOf("${startDuration.value}, ${endDuration.value}") }
     val viewModel: AlarmViewModel = viewModel(
         factory = AlarmFactory(
             RepositoryImpl.getInstance(

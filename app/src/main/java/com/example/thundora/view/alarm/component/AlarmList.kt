@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,6 +64,7 @@ fun AlarmList(
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val alarmScheduler = AlarmScheduler(LocalContext.current)
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -131,6 +133,8 @@ fun AlarmCard(
     startDuration: MutableState<String>,
     endDuration: MutableState<String>
 ) {
+    val savedStartDuration = rememberSaveable { startDuration }
+    val savedEndDuration = rememberSaveable { endDuration }
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(16.dp),
@@ -151,9 +155,9 @@ fun AlarmCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = stringResource(R.string.start_at) +startDuration.value+ stringResource(R.string.to) + stringResource(
+                    text = stringResource(R.string.start_at) +savedStartDuration.value+ stringResource(R.string.to) + stringResource(
                         R.string.end_at
-                    )+endDuration.value,
+                    )+savedEndDuration.value,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold

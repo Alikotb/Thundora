@@ -98,7 +98,6 @@ fun AddNewAlertBottomSheet(
     alarmViewModel: AlarmViewModel
 ) {
     val context = LocalContext.current
-    var selectedOption by remember { mutableStateOf(context.getString(R.string.alarm)) }
     val interactionSource = remember { MutableInteractionSource() }
     val interactionSource2 = remember { MutableInteractionSource() }
     var showStartTimePicker by remember { mutableStateOf(false) }
